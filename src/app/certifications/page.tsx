@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 export default function CertificationsPage() {
   return (
     <ViewTransition enter="page-enter" exit="page-exit" default="none">
-      <CertificationsSection />
+      <main>
+        <CertificationsSection />
+      </main>
     </ViewTransition>
   );
 }

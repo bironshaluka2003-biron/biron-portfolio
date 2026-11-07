@@ -159,7 +159,7 @@ function AchievementCard({ achievement, index }: { achievement: Achievement; ind
 
 export function CertificationsSection() {
   return (
-    <main className="certifications-page">
+    <section aria-labelledby="certifications-title" className="certifications-page" id="certifications">
       <div aria-hidden="true" className="certifications-atmosphere">
         <span className="certifications-glow certifications-glow-one" />
         <span className="certifications-glow certifications-glow-two" />
@@ -168,7 +168,7 @@ export function CertificationsSection() {
       <div className="certifications-shell">
         <header className="certifications-heading">
           <p className="certifications-eyebrow"><span /> LEARNING &amp; DEVELOPMENT</p>
-          <h1>Certifications <span>&amp; Achievements</span></h1>
+          <h1 id="certifications-title">Certifications <span>&amp; Achievements</span></h1>
           <p className="certifications-subtitle">
             Professional certifications, digital badges, and learning achievements from Cisco Networking Academy.
           </p>
@@ -189,6 +189,6 @@ export function CertificationsSection() {
           </div>
         </section>
       </div>
-    </main>
+    </section>
   );
 }
