@@ -330,7 +330,7 @@ export default function InteractiveNetworkGlobe() {
     }
 
     setUnavailable(false);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 600 ? 1.15 : 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -696,6 +696,8 @@ export default function InteractiveNetworkGlobe() {
     const resize = () => {
       const { width, height } = stage.getBoundingClientRect();
       if (width < 1 || height < 1) return;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, width < 600 ? 1.15 : 1.5);
+      if (Math.abs(renderer.getPixelRatio() - pixelRatio) > 0.01) renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -875,7 +877,29 @@ export default function InteractiveNetworkGlobe() {
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch") {
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      const totalX = event.clientX - drag.startX;
+      const totalY = event.clientY - drag.startY;
+      const deltaX = event.clientX - drag.lastX;
+      const deltaY = event.clientY - drag.lastY;
+      drag.moved ||= Math.hypot(totalX, totalY) > 6;
+
+      if (Math.abs(totalX) > Math.abs(totalY) && drag.moved) {
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }
+        dragRotationRef.current.y += deltaX * 0.006;
+        dragRotationRef.current.x = THREE.MathUtils.clamp(dragRotationRef.current.x + deltaY * 0.006, -1.15, 1.15);
+        requestRender();
+      }
+
+      drag.lastX = event.clientX;
+      drag.lastY = event.clientY;
+      return;
+    }
     const bounds = event.currentTarget.getBoundingClientRect();
     pointerRef.current = {
       x: ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
@@ -901,6 +925,9 @@ export default function InteractiveNetworkGlobe() {
     if (!drag || drag.pointerId !== event.pointerId) return;
     if (!drag.moved && !(event.target as HTMLElement).closest("button, [data-globe-ui]")) {
       updateSelectedHub(pickHubRef.current?.(event.clientX, event.clientY) ?? null);
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
     dragRef.current = null;
   };
