@@ -287,7 +287,7 @@ export default function InteractiveNetworkGlobe() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const pointerRef = useRef({ x: 0, y: 0, active: false });
+  const pointerRef = useRef({ x: 0, y: 0, overGlobe: false });
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; lastX: number; lastY: number; moved: boolean } | null>(null);
   const rotationRef = useRef({ x: 0, y: 0 });
   const requestRenderRef = useRef<(() => void) | null>(null);
@@ -549,6 +549,7 @@ export default function InteractiveNetworkGlobe() {
     const lookupPointer = (request: PointerLookupRequest) => {
       const bounds = stage.getBoundingClientRect();
       if (request.x < bounds.left || request.x > bounds.right || request.y < bounds.top || request.y > bounds.bottom) {
+        pointerRef.current.overGlobe = false;
         if (request.touchTap) hideTooltip();
         else queueTooltipHide();
         return;
@@ -562,6 +563,7 @@ export default function InteractiveNetworkGlobe() {
       camera.updateMatrixWorld(true);
       raycaster.setFromCamera(rayPointer, camera);
       const intersection = raycaster.intersectObject(globeSurface, false)[0];
+      pointerRef.current.overGlobe = Boolean(intersection) && !request.touchTap;
       if (!intersection) {
         if (request.touchTap) hideTooltip();
         else queueTooltipHide();
@@ -649,11 +651,15 @@ export default function InteractiveNetworkGlobe() {
         satellite.quaternion.setFromRotationMatrix(orientation);
       }
 
-      globeGroup.rotation.y += delta * (reduceMotion ? 0 : pointerRef.current.active ? 0.28 : 0.075);
-      const targetRootX = pointerRef.current.y * 0.055 + rotationRef.current.x;
-      const targetRootY = pointerRef.current.x * 0.09 + rotationRef.current.y;
-      sceneRoot.rotation.x += (targetRootX - sceneRoot.rotation.x) * (reduceMotion ? 1 : 0.055);
-      sceneRoot.rotation.y += (targetRootY - sceneRoot.rotation.y) * (reduceMotion ? 1 : 0.055);
+      if (!pointerRef.current.overGlobe) {
+        globeGroup.rotation.y += delta * (reduceMotion ? 0 : 0.075);
+      }
+      if (!pointerRef.current.overGlobe || dragRef.current) {
+        const targetRootX = pointerRef.current.y * 0.055 + rotationRef.current.x;
+        const targetRootY = pointerRef.current.x * 0.09 + rotationRef.current.y;
+        sceneRoot.rotation.x += (targetRootX - sceneRoot.rotation.x) * (reduceMotion ? 1 : 0.055);
+        sceneRoot.rotation.y += (targetRootY - sceneRoot.rotation.y) * (reduceMotion ? 1 : 0.055);
+      }
 
       renderer.render(scene, camera);
       if (!reduceMotion) frameId = window.requestAnimationFrame(renderFrame);
@@ -680,6 +686,9 @@ export default function InteractiveNetworkGlobe() {
     window.addEventListener("resize", resize);
 
     const handleWheel = (event: WheelEvent) => {
+      // Let normal wheel input scroll the document. Keep globe zoom available
+      // for an explicit modified-wheel gesture (also used by trackpad pinch).
+      if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       camera.position.z = THREE.MathUtils.clamp(camera.position.z + event.deltaY * 0.003, 4.9, 8.4);
       requestRenderRef.current?.();
@@ -744,7 +753,7 @@ export default function InteractiveNetworkGlobe() {
     pointerRef.current = {
       x: ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
       y: -(((event.clientY - bounds.top) / bounds.height) * 2 - 1),
-      active: true,
+      overGlobe: pointerRef.current.overGlobe,
     };
 
     if (event.pointerType === "touch") {
@@ -803,7 +812,7 @@ export default function InteractiveNetworkGlobe() {
 
   const handlePointerLeave = () => {
     if (touchPopupPinnedRef.current) return;
-    pointerRef.current = { x: 0, y: 0, active: false };
+    pointerRef.current = { x: 0, y: 0, overGlobe: false };
     requestRenderRef.current?.();
     cancelCountryLookupRef.current?.();
     dismissTooltipRef.current?.();

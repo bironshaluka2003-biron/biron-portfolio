@@ -150,7 +150,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Projects section */
-.projects-section { position: relative; isolation: isolate; padding: 36px 7.2% 42px; overflow: clip; background: radial-gradient(ellipse at 84% 12%,#18c6c00c,transparent 36%),linear-gradient(180deg,var(--background),#091b1c 100%); }
+.projects-section { position: relative; isolation: isolate; padding: 36px 7.2% 42px; overflow-x: clip; overflow-y: visible; background: radial-gradient(ellipse at 84% 12%,#18c6c00c,transparent 36%),linear-gradient(180deg,var(--background),#091b1c 100%); }
 .projects-shell { width: min(100%,1280px); margin: 0 auto; }
 .projects-section.is-visible .project-card,.projects-section.is-visible .projects-footer-line { opacity: 1; transform: translateY(0); }
 .project-carousel-controls { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 12px; }
@@ -161,7 +161,7 @@ a { color: inherit; text-decoration: none; }
 .project-carousel-arrow:focus-visible,.project-carousel-viewport:focus-visible,.project-carousel-dot:focus-visible { outline: 2px solid var(--highlight); outline-offset: 3px; }
 .project-carousel-arrow:disabled { opacity: .34; cursor: not-allowed; }
 .project-carousel-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.project-carousel-viewport { width: 100%; overflow: hidden; border-radius: 18px; touch-action: pan-y; cursor: grab; transition: height .56s cubic-bezier(.22,.75,.18,1); }
+.project-carousel-viewport { width: 100%; overflow-x: clip; overflow-y: visible; border-radius: 18px; touch-action: pan-y; cursor: grab; transition: height .56s cubic-bezier(.22,.75,.18,1); }
 .project-carousel-viewport.is-dragging { cursor: grabbing; }
 .project-carousel-track { position: relative; width: 100%; }
 .project-carousel-track.is-dragging { transition: none; user-select: none; }
@@ -224,6 +224,53 @@ a { color: inherit; text-decoration: none; }
 .project-links svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--accent-secondary); }
 .projects-footer-line { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; margin-top: 28px; color: #78908d; font-family: var(--font-geist-mono),monospace; font-size: 7px; letter-spacing: .12em; opacity: 0; transform: translateY(10px); transition: opacity .6s .22s ease,transform .6s .22s ease; }
 .projects-footer-line span:nth-child(2) { height: 1px; background: linear-gradient(90deg,#28504f,transparent); }
+
+/* Certifications page */
+.certifications-page { position: relative; isolation: isolate; flex: 1; min-height: calc(100svh - 84px); padding: clamp(55px,7vw,94px) 0 90px; background: radial-gradient(ellipse at 84% 26%,#18c6c00c,transparent 43%),linear-gradient(180deg,#071416,#091b1c 100%); }
+.certifications-atmosphere { position: absolute; z-index: -1; inset: 0; overflow: hidden; pointer-events: none; }
+.certifications-glow { position: absolute; width: 420px; aspect-ratio: 1; border-radius: 50%; background: #18c6c0; filter: blur(125px); opacity: .08; }
+.certifications-glow-one { top: -190px; right: 5%; }
+.certifications-glow-two { top: 660px; left: -300px; opacity: .055; }
+.certifications-grid { position: absolute; inset: 0; opacity: .15; background-image: linear-gradient(#91f5e908 1px,transparent 1px),linear-gradient(90deg,#91f5e908 1px,transparent 1px); background-size: 76px 76px; mask-image: linear-gradient(to bottom,transparent,#000 18%,#000 74%,transparent); }
+.certifications-shell { width: min(85.6%,1180px); margin: 0 auto; }
+.certifications-heading { max-width: 760px; animation: certification-reveal .7s cubic-bezier(.2,.7,.2,1) both; }
+.certifications-eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; color: var(--muted); font-size: 9px; letter-spacing: .19em; }
+.certifications-eyebrow span { width: 21px; height: 1px; background: linear-gradient(90deg,var(--accent),var(--highlight)); }
+.certifications-heading h1 { margin: 0; color: var(--foreground); font-size: clamp(38px,5.3vw,66px); font-weight: 530; letter-spacing: -.065em; line-height: 1.08; }
+.certifications-heading h1 span { color: transparent; background: linear-gradient(100deg,var(--foreground) 8%,var(--accent-secondary) 72%,var(--accent)); background-clip: text; -webkit-background-clip: text; }
+.certifications-subtitle { max-width: 600px; margin: 19px 0 0; color: var(--muted); font-size: 13px; line-height: 1.85; }
+.certifications-provider { margin-top: clamp(48px,6.8vw,82px); }
+.certifications-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 23px; animation: certification-reveal .7s .08s cubic-bezier(.2,.7,.2,1) both; }
+.certifications-section-label { margin: 0 0 10px; color: #72928f; font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .16em; }
+.certifications-section-heading h2 { margin: 0; color: var(--foreground); font-size: clamp(23px,3vw,31px); font-weight: 520; letter-spacing: -.045em; }
+.certifications-total { flex: 0 0 auto; padding-bottom: 4px; color: #829a98; font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .13em; }
+.achievement-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; }
+.achievement-card { position: relative; display: flex; min-width: 0; flex-direction: column; overflow: hidden; padding: 17px 18px 16px; border: 1px solid #28504fbd; border-radius: 12px; background: linear-gradient(145deg,#183a3bba,#102b2d 74%); box-shadow: 0 17px 44px #0003,inset 0 1px #ffffff09; opacity: 0; animation: certification-reveal .62s cubic-bezier(.2,.7,.2,1) both; transition: transform .24s ease,border-color .24s ease,background .24s ease,box-shadow .24s ease; }
+.achievement-card:hover { transform: translateY(-4px); border-color: #18c6c080; background: linear-gradient(145deg,#183a3b,#102b2d 82%); box-shadow: 0 24px 52px #0005,0 0 28px #18c6c012,inset 0 1px #ffffff12; }
+.achievement-card-topline { display: flex; min-height: 18px; align-items: center; justify-content: space-between; }
+.achievement-index { color: #6c8582; font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .12em; }
+.achievement-verified { display: inline-flex; align-items: center; gap: 6px; color: #a5eee7; font-size: 9px; }
+.achievement-verified span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-secondary); box-shadow: 0 0 10px #20d8ce80; }
+.achievement-artwork { position: relative; display: grid; width: 100%; height: 143px; place-items: center; margin: 10px 0 13px; overflow: hidden; border: 1px solid #28504f83; border-radius: 8px; background: radial-gradient(ellipse at 50% 45%,#18c6c012,transparent 68%),linear-gradient(145deg,#102b2d80,#071416b3); }
+.achievement-artwork-badge { background-color: #0a2021; background-image: radial-gradient(ellipse at center,#18c6c019,transparent 68%),url("https://images.credly.com/images/fce226c2-0f13-4e17-b60c-24fa6ffd88cb/Intro2IoT.png"); background-position: center; background-repeat: no-repeat; background-size: auto,106px 106px; }
+.achievement-artwork svg { position: relative; z-index: 1; width: 96px; height: 96px; overflow: visible; stroke: #91f5e9; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.achievement-artwork svg .achievement-icon-orbit { stroke: #20d8ce35; stroke-dasharray: 2 5; }
+.achievement-artwork svg .achievement-icon-core { fill: #18c6c00a; stroke: #18c6c040; }
+.achievement-artwork-glow { position: absolute; width: 58px; height: 58px; border-radius: 50%; background: #18c6c0; filter: blur(36px); opacity: .2; }
+.achievement-card-copy { min-height: 69px; }
+.achievement-type { display: inline-flex; color: #88c9c3; font-size: 9px; font-weight: 520; letter-spacing: .08em; }
+.achievement-card h3 { margin: 8px 0 0; color: var(--foreground); font-size: 17px; font-weight: 540; letter-spacing: -.025em; line-height: 1.3; }
+.achievement-meta { display: grid; gap: 10px; margin: 14px 0 0; padding: 13px 0 0; border-top: 1px solid #28504f82; }
+.achievement-meta > div { display: flex; justify-content: space-between; gap: 12px; }
+.achievement-meta dt { flex: 0 0 auto; color: #78908d; font-size: 9px; }
+.achievement-meta dd { margin: 0; color: #c3d4d1; font-size: 9px; text-align: right; }
+.achievement-verify-link { display: flex; min-height: 37px; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; padding: 0 11px; border: 1px solid #18c6c053; border-radius: 6px; color: #a8f0e9; background: #18c6c00d; font-size: 10px; transition: border-color .2s ease,background .2s ease,color .2s ease; }
+.achievement-verify-link:hover { border-color: #20d8ce9c; color: var(--highlight); background: #18c6c018; }
+.achievement-verify-link:focus-visible { outline: 2px solid var(--highlight); outline-offset: 3px; }
+@keyframes certification-reveal { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 900px) { .achievement-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; } }
+@media (max-width: 600px) { .certifications-page { padding: 53px 0 60px; } .certifications-shell { width: min(88%,480px); } .certifications-heading h1 { font-size: clamp(37px,9.2vw,51px); } .certifications-subtitle { font-size: 12px; } .certifications-provider { margin-top: 49px; } .certifications-section-heading { align-items: start; flex-direction: column; gap: 12px; margin-bottom: 18px; } .achievement-grid { grid-template-columns: 1fr; gap: 12px; } .achievement-card { padding: 16px; } .achievement-artwork { height: 136px; } .achievement-card-copy { min-height: auto; } .achievement-meta > div { justify-content: flex-start; } .achievement-meta dd { text-align: left; } }
+@media (prefers-reduced-motion: reduce) { .certifications-heading,.certifications-section-heading,.achievement-card { opacity: 1; animation: none; transition: none; } }
 @media (max-width: 900px) { .projects-section { padding-inline: 6%; } .project-overview { grid-template-columns: minmax(0,1fr) minmax(240px,.85fr); gap: 24px; } .project-bottom { grid-template-columns: 1fr; align-items: start; } .project-links { justify-content: flex-start; } }
 @keyframes project-enter-right { from { opacity: 0; transform: translate3d(34px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
 @keyframes project-enter-left { from { opacity: 0; transform: translate3d(-34px,0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
