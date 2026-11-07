@@ -159,7 +159,7 @@ function AchievementCard({ achievement, index }: { achievement: Achievement; ind
 
 export function CertificationsSection() {
   return (
-    <section aria-labelledby="certifications-title" className="certifications-page" id="certifications">
+    <section aria-labelledby="certifications-title" className="certifications-page" data-scroll-transition="CERTIFICATIONS" id="certifications">
       <div aria-hidden="true" className="certifications-atmosphere">
         <span className="certifications-glow certifications-glow-one" />
         <span className="certifications-glow certifications-glow-two" />

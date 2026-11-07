@@ -405,6 +405,7 @@ export function ProjectsSection() {
     <section
       aria-label="Projects"
       className={`projects-section${isVisible ? " is-visible" : ""}`}
+      data-scroll-transition="PROJECTS"
       id="projects"
       ref={sectionRef}
     >

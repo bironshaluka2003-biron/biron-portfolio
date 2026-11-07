@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navigation } from "@/components/navigation";
+import { WaterTransitionProvider } from "@/components/water-transition-provider";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,8 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col">
-        <Navigation />
-        {children}
+        <WaterTransitionProvider>
+          <Navigation />
+          {children}
+          <SiteFooter />
+        </WaterTransitionProvider>
       </body>
     </html>
   );

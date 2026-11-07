@@ -13,7 +13,6 @@ const links = [
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   useEffect(() => {
     if (!isMenuOpen) return;
 

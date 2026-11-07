@@ -370,6 +370,52 @@ a { color: inherit; text-decoration: none; }
   ::view-transition-new(.page-enter) { animation-duration: 0s !important; }
 }
 
+/* Scroll-triggered liquid glass section transition */
+.water-transition-overlay { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; overflow: clip; pointer-events: none; isolation: isolate; }
+.water-transition-layer { position: absolute; inset: 0; overflow: hidden; opacity: 0; clip-path: polygon(0 0,100% 0,100% 12%,89% 14%,77% 12%,65% 15%,53% 12%,41% 15%,29% 12%,17% 15%,7% 12%,0 14%); background: linear-gradient(180deg,#102b2d66 0%,#18c6c02b 42%,#07141621 100%),radial-gradient(ellipse at 50% 9%,#91f5e933,transparent 58%); backdrop-filter: blur(1.5px); animation: water-flow-down var(--water-transition-duration) cubic-bezier(.22,.72,.18,1) both; }
+.water-transition-layer::before { position: absolute; inset: -12% -8%; content: ""; opacity: .56; background: linear-gradient(176deg,transparent 0 35%,#91f5e91a 35.15%,transparent 35.7% 48%,#20d8ce17 48.2%,transparent 48.7% 63%,#91f5e912 63.2%,transparent 63.7%),radial-gradient(ellipse at 50% 38%,#18c6c019,transparent 62%); transform: translateY(-3%); animation: water-glass-shimmer var(--water-transition-duration) ease-in-out both; }
+.water-transition-layer::after { position: absolute; inset: 0; content: ""; opacity: 0; clip-path: inherit; background: linear-gradient(180deg,#91f5e918,transparent 45%,#18c6c00d); filter: drop-shadow(0 2px 8px #18c6c055); animation: water-edge-glint var(--water-transition-duration) ease-in-out both; }
+.water-transition-ripple { position: absolute; left: -15%; width: 130%; height: 15vh; border-top: 1px solid #91f5e94a; border-radius: 50%; opacity: 0; box-shadow: 0 -5px 24px #18c6c014,inset 0 4px 13px #91f5e90b; transform: translateY(-20vh) scaleX(.82); animation: water-ripple-drift var(--water-transition-duration) cubic-bezier(.22,.72,.18,1) both; }
+.water-transition-ripple-one { top: 17%; }
+.water-transition-ripple-two { top: 21%; left: -9%; width: 118%; border-color: #20d8ce30; animation-delay: 70ms; animation-duration: calc(var(--water-transition-duration) * .94); }
+.water-transition-ripple-three { top: 24%; left: -20%; width: 140%; border-color: #91f5e926; animation-delay: 130ms; animation-duration: calc(var(--water-transition-duration) * .9); }
+.water-transition-title { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8vw; text-align: center; color: var(--foreground); text-shadow: 0 3px 32px #071416bb; animation: water-title-presence var(--water-transition-duration) ease both; }
+.water-transition-kicker { margin-bottom: clamp(18px,3vw,38px); color: var(--accent-secondary); font-family: var(--font-geist-mono),monospace; font-size: 9px; letter-spacing: .3em; }
+.water-transition-heading { max-width: 92vw; color: var(--foreground); font-size: clamp(56px,13vw,180px); font-weight: 540; letter-spacing: -.085em; line-height: .9; text-wrap: balance; }
+.water-transition-rule { width: clamp(38px,6vw,76px); height: 2px; margin-top: clamp(22px,4vw,46px); background: linear-gradient(90deg,var(--accent),var(--accent-secondary),var(--highlight)); box-shadow: 0 0 18px #18c6c066; }
+.water-transition-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+@keyframes water-flow-down {
+  0% { opacity: 0; clip-path: polygon(0 0,100% 0,100% 5%,89% 7%,77% 5%,65% 8%,53% 5%,41% 8%,29% 5%,17% 8%,7% 5%,0 7%); }
+  12% { opacity: .8; }
+  48% { opacity: .78; clip-path: polygon(0 0,100% 0,100% 53%,89% 55%,77% 52%,65% 56%,53% 52%,41% 56%,29% 53%,17% 56%,7% 53%,0 55%); }
+  78% { opacity: .58; clip-path: polygon(0 0,100% 0,100% 100%,89% 100%,77% 100%,65% 100%,53% 100%,41% 100%,29% 100%,17% 100%,7% 100%,0 100%); }
+  100% { opacity: 0; clip-path: polygon(0 0,100% 0,100% 100%,89% 100%,77% 100%,65% 100%,53% 100%,41% 100%,29% 100%,17% 100%,7% 100%,0 100%); }
+}
+@keyframes water-edge-glint { 0%,8% { opacity: 0; } 20%,65% { opacity: .8; } 84%,100% { opacity: 0; } }
+@keyframes water-glass-shimmer { 0% { transform: translateY(-7%) skewY(-1deg); opacity: .15; } 55% { transform: translateY(4%) skewY(.4deg); opacity: .62; } 100% { transform: translateY(12%) skewY(-.3deg); opacity: 0; } }
+@keyframes water-ripple-drift { 0%,8% { opacity: 0; transform: translateY(-24vh) scaleX(.78); } 24% { opacity: .54; } 58% { opacity: .35; transform: translateY(40vh) scaleX(1.04); } 88%,100% { opacity: 0; transform: translateY(112vh) scaleX(.94); } }
+@keyframes water-title-presence { 0%,13% { opacity: 0; transform: translateY(12px); } 25%,49% { opacity: 1; transform: translateY(0); } 64%,100% { opacity: 0; transform: translateY(-8px); } }
+.water-scroll-exit { animation: water-section-exit .82s ease-out both; }
+.water-scroll-reveal { animation: water-section-reveal .62s .72s cubic-bezier(.2,.7,.2,1) both; }
+.water-scroll-reveal.water-scroll-reveal-reduced { animation: water-section-reveal .22s ease-out both; }
+@keyframes water-section-exit { 0%,100% { filter: blur(0); opacity: 1; } 42% { filter: blur(2px); opacity: .76; } }
+@keyframes water-section-reveal { from { opacity: .74; transform: translateY(13px); } to { opacity: 1; transform: translateY(0); } }
+.water-transition-overlay.is-reduced .water-transition-layer { animation: water-reduced-fade var(--water-transition-duration) ease both; clip-path: none; backdrop-filter: none; }
+.water-transition-overlay.is-reduced .water-transition-layer::before,.water-transition-overlay.is-reduced .water-transition-layer::after,.water-transition-overlay.is-reduced .water-transition-ripple { display: none; }
+.water-transition-overlay.is-reduced .water-transition-title { animation: water-reduced-fade var(--water-transition-duration) ease both; }
+@keyframes water-reduced-fade { from { opacity: 0; } 35% { opacity: .45; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .water-transition-overlay * { animation-duration: 220ms !important; } }
+.site-footer { position: relative; z-index: 0; padding: 40px 7.2% 30px; border-top: 1px solid var(--border); background: linear-gradient(180deg,#091b1c,var(--background)); }
+.site-footer-inner { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 20px 36px; width: min(100%,1280px); margin: 0 auto; }
+.site-footer-copy h2 { margin: 0; color: var(--foreground); font-size: clamp(25px,3vw,37px); font-weight: 520; letter-spacing: -.055em; }
+.site-footer-eyebrow { margin: 0 0 9px; color: var(--accent-secondary); font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .2em; }
+.site-footer-links { display: flex; align-items: center; gap: 10px; }
+.site-footer-links a { display: inline-flex; min-height: 40px; align-items: center; gap: 18px; padding: 0 13px; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 11px; transition: border-color .2s ease,color .2s ease,background .2s ease; }
+.site-footer-links a:hover,.site-footer-links a:focus-visible { border-color: var(--accent); color: var(--highlight); background: #18c6c010; }
+.site-footer-signoff { grid-column: 1 / -1; margin: 0; color: #748b88; font-size: 9px; }
+.site-footer-signoff span { padding: 0 6px; color: var(--accent); }
+@media (max-width: 600px) { .site-footer { padding: 31px 7% 24px; } .site-footer-inner { grid-template-columns: 1fr; align-items: start; gap: 17px; } .site-footer-links { flex-wrap: wrap; } .site-footer-signoff { grid-column: auto; font-size: 8px; line-height: 1.6; } }
+
 /* Home landing page */
 .home-landing { position: relative; z-index: 0; isolation: isolate; display: flex; flex: 1; min-height: calc(100svh - 84px); align-items: center; background: var(--background); }
 .home-atmosphere { position: absolute; z-index: -1; inset: 0; overflow: clip; pointer-events: none; }

@@ -74,7 +74,7 @@ export function HomeLanding() {
           infrastructure, with a passion for technology and continuous learning.
         </p>
 
-        <section aria-label="Contact and social profiles" className="social-actions" id="contact">
+        <section aria-label="Social profiles and CV" className="social-actions">
           <SocialAction external href="https://github.com/bironshaluka2003-biron" kind="github" label="GitHub" />
           <SocialAction external href="https://www.linkedin.com/in/bironshaluka/" kind="linkedin" label="LinkedIn" />
           {/* Add the CV file at public/cv.pdf to enable this download. */}

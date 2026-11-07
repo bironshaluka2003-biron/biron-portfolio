@@ -39,6 +39,7 @@ export function AboutSection() {
     <section
       aria-labelledby="about-title"
       className={`about-section${isVisible ? " is-visible" : ""}`}
+      data-scroll-transition="ABOUT"
       id="about"
       ref={sectionRef}
     >
