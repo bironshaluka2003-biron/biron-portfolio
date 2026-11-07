@@ -123,21 +123,21 @@ function geographicPosition(latitude: number, longitude: number, radius: number)
 function createDevice(kind: DeviceKind) {
   const device = new THREE.Group();
   const bodyMaterial = new THREE.MeshStandardMaterial({
-    color: kind === "router" ? 0x263a70 : 0x1b294e,
-    emissive: kind === "router" ? 0x273da0 : 0x172e71,
+    color: kind === "router" ? 0x183a3b : 0x102b2d,
+    emissive: kind === "router" ? 0x18c6c0 : 0x28504f,
     emissiveIntensity: 0.28,
     metalness: 0.68,
     roughness: 0.34,
   });
   const faceMaterial = new THREE.MeshStandardMaterial({
-    color: 0x11192d,
-    emissive: 0x111d43,
+    color: 0x242424,
+    emissive: 0x102b2d,
     emissiveIntensity: 0.3,
     metalness: 0.5,
     roughness: 0.4,
   });
-  const ledMaterial = new THREE.MeshBasicMaterial({ color: 0x76baff });
-  const violetLedMaterial = new THREE.MeshBasicMaterial({ color: 0x9b7cff });
+  const ledMaterial = new THREE.MeshBasicMaterial({ color: 0x20d8ce });
+  const highlightLedMaterial = new THREE.MeshBasicMaterial({ color: 0x91f5e9 });
 
   if (kind === "router") {
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.22), bodyMaterial);
@@ -148,7 +148,7 @@ function createDevice(kind: DeviceKind) {
     device.add(face);
 
     for (let index = 0; index < 3; index += 1) {
-      const led = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 8), index === 2 ? violetLedMaterial : ledMaterial);
+      const led = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 8), index === 2 ? highlightLedMaterial : ledMaterial);
       led.position.set(-0.065 + index * 0.045, -0.035, 0.128);
       device.add(led);
     }
@@ -161,7 +161,7 @@ function createDevice(kind: DeviceKind) {
       antenna.position.set(side * 0.12, 0.15, -0.07);
       antenna.rotation.z = side * -0.13;
       device.add(antenna);
-      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 8), violetLedMaterial);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 8), highlightLedMaterial);
       tip.position.set(side * 0.132, 0.24, -0.07);
       device.add(tip);
     }
@@ -177,13 +177,89 @@ function createDevice(kind: DeviceKind) {
       const slot = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.065, 0.008), bodyMaterial);
       slot.position.set(0, 0.095 - index * 0.09, 0.127);
       device.add(slot);
-      const led = new THREE.Mesh(new THREE.SphereGeometry(0.009, 8, 8), index === 1 ? violetLedMaterial : ledMaterial);
+      const led = new THREE.Mesh(new THREE.SphereGeometry(0.009, 8, 8), index === 1 ? highlightLedMaterial : ledMaterial);
       led.position.set(0.07, 0.095 - index * 0.09, 0.134);
       device.add(led);
     }
   }
 
   return device;
+}
+
+function createSatellite() {
+  const satellite = new THREE.Group();
+  const bodyMaterial = new THREE.MeshStandardMaterial({
+    color: 0x183a3b,
+    metalness: 0.82,
+    roughness: 0.3,
+  });
+  const silverMaterial = new THREE.MeshStandardMaterial({
+    color: 0xa3b8b5,
+    metalness: 0.78,
+    roughness: 0.26,
+  });
+  const panelMaterial = new THREE.MeshStandardMaterial({
+    color: 0x102b2d,
+    emissive: 0x071416,
+    metalness: 0.56,
+    roughness: 0.42,
+  });
+  const panelGridMaterial = new THREE.LineBasicMaterial({
+    color: 0x28746d,
+    transparent: true,
+    opacity: 0.78,
+    depthWrite: false,
+  });
+  const indicatorMaterial = new THREE.MeshBasicMaterial({
+    color: 0x91f5e9,
+    toneMapped: false,
+  });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.085, 0.105), bodyMaterial);
+  satellite.add(body);
+
+  const centerBand = new THREE.Mesh(new THREE.BoxGeometry(0.126, 0.018, 0.11), silverMaterial);
+  centerBand.position.y = 0.014;
+  satellite.add(centerBand);
+
+  const panelGeometry = new THREE.BoxGeometry(0.155, 0.105, 0.012);
+  const panelGridPoints: THREE.Vector3[] = [];
+  for (let column = 1; column <= 3; column += 1) {
+    const x = -0.0775 + (column / 4) * 0.155;
+    panelGridPoints.push(new THREE.Vector3(x, -0.051, 0.008), new THREE.Vector3(x, 0.051, 0.008));
+  }
+  for (let row = 1; row <= 2; row += 1) {
+    const y = -0.0525 + (row / 3) * 0.105;
+    panelGridPoints.push(new THREE.Vector3(-0.0775, y, 0.008), new THREE.Vector3(0.0775, y, 0.008));
+  }
+  const panelGridGeometry = new THREE.BufferGeometry().setFromPoints(panelGridPoints);
+  const panelGrid = new THREE.LineSegments(panelGridGeometry, panelGridMaterial);
+  for (const side of [-1, 1]) {
+    const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+    panel.position.x = side * 0.16;
+    satellite.add(panel);
+
+    const grid = panelGrid.clone();
+    grid.position.x = side * 0.16;
+    satellite.add(grid);
+
+    const support = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.009, 0.018), silverMaterial);
+    support.position.x = side * 0.105;
+    satellite.add(support);
+  }
+
+  const antenna = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.003, 0.004, 0.065, 6),
+    silverMaterial,
+  );
+  antenna.position.set(0.035, 0.068, 0);
+  satellite.add(antenna);
+
+  const indicator = new THREE.Mesh(new THREE.SphereGeometry(0.009, 8, 8), indicatorMaterial);
+  indicator.position.set(0.035, 0.104, 0);
+  satellite.add(indicator);
+
+  return satellite;
 }
 
 function getMaterials(root: THREE.Object3D) {
@@ -257,21 +333,21 @@ export default function InteractiveNetworkGlobe() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.05;
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
     camera.position.set(0, 0, 6.4);
 
-    scene.add(new THREE.AmbientLight(0x829bd8, 1.45));
-    const keyLight = new THREE.PointLight(0x578cff, 26, 12);
+    scene.add(new THREE.AmbientLight(0xa3b8b5, 1.05));
+    const keyLight = new THREE.PointLight(0x18c6c0, 18, 12);
     keyLight.position.set(-3.2, 2.8, 4.5);
     scene.add(keyLight);
-    const rimLight = new THREE.PointLight(0x805cff, 23, 12);
+    const rimLight = new THREE.PointLight(0x20d8ce, 9, 12);
     rimLight.position.set(3.4, -1.8, -2.5);
     scene.add(rimLight);
-    const fillLight = new THREE.PointLight(0x1b76ff, 10, 9);
+    const fillLight = new THREE.PointLight(0x102b2d, 5, 9);
     fillLight.position.set(2.4, 2.2, 3);
     scene.add(fillLight);
 
@@ -285,7 +361,7 @@ export default function InteractiveNetworkGlobe() {
 
     const sphereMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0x152952,
+      emissive: 0x102b2d,
       emissiveIntensity: 0.2,
       metalness: 0.28,
       roughness: 0.68,
@@ -316,12 +392,12 @@ export default function InteractiveNetworkGlobe() {
       },
       undefined,
       () => {
-        // Keep the atmospheric navy surface as a graceful fallback if the local texture cannot load.
+        // Keep the atmospheric deep ocean surface as a graceful fallback if the local texture cannot load.
       },
     );
 
     const shellMaterial = new THREE.MeshBasicMaterial({
-      color: 0x477dff,
+      color: 0x20d8ce,
       side: THREE.BackSide,
       transparent: true,
       opacity: 0.12,
@@ -333,7 +409,7 @@ export default function InteractiveNetworkGlobe() {
     ));
 
     const gridMaterial = new THREE.LineBasicMaterial({
-      color: 0x47639d,
+      color: 0x24615c,
       transparent: true,
       opacity: 0.22,
       depthWrite: false,
@@ -379,14 +455,14 @@ export default function InteractiveNetworkGlobe() {
     const hubMarkers: CityMarker[] = NETWORK_HUBS.map((hub, index) => {
       const position = geographicPosition(hub.latitude, hub.longitude, GLOBE_RADIUS + 0.045);
       const markerMaterial = new THREE.MeshStandardMaterial({
-        color: index % 3 === 0 ? 0xc2abff : 0x91c7ff,
-        emissive: index % 3 === 0 ? 0x7550ff : 0x318dff,
+        color: index % 3 === 0 ? 0x91f5e9 : 0x20d8ce,
+        emissive: index % 3 === 0 ? 0x18c6c0 : 0x18c6c0,
         emissiveIntensity: 1.9,
         metalness: 0.1,
         roughness: 0.2,
       });
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: index % 3 === 0 ? 0x936aff : 0x4b9bff,
+        color: 0x91f5e9,
         transparent: true,
         opacity: 0.16,
         depthWrite: false,
@@ -411,14 +487,14 @@ export default function InteractiveNetworkGlobe() {
       const angle = start.angleTo(end);
       const points = buildGreatCircle(start, end, GLOBE_RADIUS + 0.025, 0.035 + angle * 0.11, 40);
       const material = new THREE.LineBasicMaterial({
-        color: index % 4 === 0 ? 0xa58aff : 0x5ca8ff,
+        color: 0x18c6c0,
         transparent: true,
         opacity: index % 4 === 0 ? 0.53 : 0.43,
         depthWrite: false,
       });
       addLine(globeGroup, points, material);
       const packetMaterial = new THREE.MeshBasicMaterial({
-        color: index % 4 === 0 ? 0xd7c5ff : 0xb2edff,
+        color: index % 4 === 0 ? 0x18c6c0 : 0xb2fff4,
         toneMapped: false,
       });
       const packetMesh = new THREE.Mesh(networkPacketGeometry, packetMaterial);
@@ -427,7 +503,7 @@ export default function InteractiveNetworkGlobe() {
         from,
         to,
         material,
-        baseColor: index % 4 === 0 ? 0xa58aff : 0x5ca8ff,
+        baseColor: 0x18c6c0,
         baseOpacity: index % 4 === 0 ? 0.53 : 0.43,
         packet: { points, speed: 0.18 + (index % 4) * 0.025, offset: index / NETWORK_CONNECTIONS.length, mesh: packetMesh },
       }];
@@ -447,7 +523,7 @@ export default function InteractiveNetworkGlobe() {
     globeGroup.add(serverSatellite);
 
     const orbitMaterial = new THREE.MeshBasicMaterial({
-      color: 0x718fff,
+      color: 0x24615c,
       transparent: true,
       opacity: 0.19,
       depthWrite: false,
@@ -455,9 +531,62 @@ export default function InteractiveNetworkGlobe() {
     const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.0035, 6, 160), orbitMaterial);
     orbit.rotation.set(0.95, 0.18, -0.3);
     globeGroup.add(orbit);
+
+    const satelliteOrbit = new THREE.Group();
+    satelliteOrbit.rotation.copy(orbit.rotation);
+    globeGroup.add(satelliteOrbit);
+    const satelliteOrbitRadiusX = 1.92;
+    const satelliteOrbitRadiusY = 1.78;
+    const satellitePathPoints = Array.from({ length: 129 }, (_, index) => {
+      const angle = (index / 128) * Math.PI * 2;
+      return new THREE.Vector3(
+        satelliteOrbitRadiusX * Math.cos(angle),
+        satelliteOrbitRadiusY * Math.sin(angle),
+        0,
+      );
+    });
+    addLine(
+      satelliteOrbit,
+      satellitePathPoints,
+      new THREE.LineBasicMaterial({
+        color: 0x24615c,
+        transparent: true,
+        opacity: 0.2,
+        depthWrite: false,
+      }),
+    );
+
+    const satellite = createSatellite();
+    const satelliteTangent = new THREE.Vector3();
+    const satelliteRight = new THREE.Vector3();
+    const satelliteUp = new THREE.Vector3();
+    const satelliteOrbitNormal = new THREE.Vector3(0, 0, 1);
+    const satelliteOrientation = new THREE.Matrix4();
+    satelliteOrbit.add(satellite);
+
+    const orientSatellite = (angle: number) => {
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      satellite.position.set(
+        satelliteOrbitRadiusX * cosine,
+        satelliteOrbitRadiusY * sine,
+        0,
+      );
+      satelliteTangent.set(
+        -satelliteOrbitRadiusX * sine,
+        satelliteOrbitRadiusY * cosine,
+        0,
+      ).normalize();
+      satelliteRight.crossVectors(satelliteOrbitNormal, satelliteTangent).normalize();
+      satelliteUp.crossVectors(satelliteTangent, satelliteRight).normalize();
+      satelliteOrientation.makeBasis(satelliteRight, satelliteUp, satelliteTangent);
+      satellite.quaternion.setFromRotationMatrix(satelliteOrientation);
+    };
+    orientSatellite(0);
+
     const orbitAccent = new THREE.Mesh(
       new THREE.TorusGeometry(1.82, 0.0025, 6, 160),
-      new THREE.MeshBasicMaterial({ color: 0x9a72ff, transparent: true, opacity: 0.14, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ color: 0x24615c, transparent: true, opacity: 0.11, depthWrite: false }),
     );
     orbitAccent.rotation.set(-0.4, 0.72, 0.28);
     globeGroup.add(orbitAccent);
@@ -485,13 +614,13 @@ export default function InteractiveNetworkGlobe() {
     });
 
     const topologyLineMaterial = new THREE.LineBasicMaterial({
-      color: 0x689cff,
+      color: 0x18c6c0,
       transparent: true,
       opacity: 0.76,
       depthWrite: false,
     });
     const topologyAccentMaterial = new THREE.LineBasicMaterial({
-      color: 0xa17dff,
+      color: 0x20d8ce,
       transparent: true,
       opacity: 0.78,
       depthWrite: false,
@@ -512,9 +641,9 @@ export default function InteractiveNetworkGlobe() {
 
     const topologyPacketGeometry = new THREE.SphereGeometry(0.033, 10, 8);
     const topologyPacketMaterials = [
-      new THREE.MeshBasicMaterial({ color: 0xbceaff, toneMapped: false }),
-      new THREE.MeshBasicMaterial({ color: 0xd4bdff, toneMapped: false }),
-      new THREE.MeshBasicMaterial({ color: 0x84c7ff, toneMapped: false }),
+      new THREE.MeshBasicMaterial({ color: 0xb2fff4, toneMapped: false }),
+      new THREE.MeshBasicMaterial({ color: 0x18c6c0, toneMapped: false }),
+      new THREE.MeshBasicMaterial({ color: 0x20d8ce, toneMapped: false }),
     ];
     const topologyPackets: PacketPath[] = topologyPaths.slice(0, 5).map((points, index) => {
       const mesh = new THREE.Mesh(topologyPacketGeometry, topologyPacketMaterials[index % topologyPacketMaterials.length]);
@@ -581,6 +710,8 @@ export default function InteractiveNetworkGlobe() {
       previousTime = time;
       elapsed += delta;
 
+      if (!reduceMotion) orientSatellite(elapsed * 0.24);
+
       const target = modeRef.current ? 1 : 0;
       if (reduceMotion) {
         topologyProgress = target;
@@ -626,7 +757,7 @@ export default function InteractiveNetworkGlobe() {
       });
       globalRoutes.forEach(({ from, to, material, baseColor, baseOpacity }) => {
         const routeHighlighted = !selectedId || from === selectedId || to === selectedId;
-        material.color.setHex(selectedId && routeHighlighted ? 0xb4a2ff : baseColor);
+        material.color.setHex(selectedId && routeHighlighted ? 0x91f5e9 : baseColor);
         material.opacity = selectedId ? routeHighlighted ? 0.88 : 0.075 : baseOpacity;
       });
 

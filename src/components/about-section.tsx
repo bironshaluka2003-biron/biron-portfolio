@@ -43,8 +43,8 @@ export function AboutSection() {
       ref={sectionRef}
     >
       <div aria-hidden="true" className="about-atmosphere">
-        <div className="about-glow about-glow-blue" />
-        <div className="about-glow about-glow-violet" />
+        <div className="about-glow about-glow-primary" />
+        <div className="about-glow about-glow-secondary" />
       </div>
 
       <div className="about-inner">

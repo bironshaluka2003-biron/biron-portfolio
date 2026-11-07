@@ -39,7 +39,7 @@ function SocialAction({ href, label, kind, download, external }: SocialActionPro
       className="social-action"
       download={download}
       href={href}
-      rel={external ? "noreferrer" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       target={external ? "_blank" : undefined}
     >
       <span className={`social-action-icon social-action-icon-${kind}`}>
@@ -55,8 +55,8 @@ export function HomeLanding() {
   return (
     <section aria-labelledby="home-title" className="home-landing" id="home">
       <div aria-hidden="true" className="home-atmosphere">
-        <div className="light-orb light-orb-blue" />
-        <div className="light-orb light-orb-violet" />
+        <div className="light-orb light-orb-primary" />
+        <div className="light-orb light-orb-secondary" />
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
         <div className="hero-grid" />
@@ -75,9 +75,8 @@ export function HomeLanding() {
         </p>
 
         <div aria-label="Social profiles and CV" className="social-actions">
-          {/* Replace these clearly marked profile placeholders when the profile URLs are available. */}
-          <SocialAction external href="https://github.com/YOUR_GITHUB_USERNAME" kind="github" label="GitHub" />
-          <SocialAction external href="https://www.linkedin.com/in/YOUR_LINKEDIN_PROFILE/" kind="linkedin" label="LinkedIn" />
+          <SocialAction external href="https://github.com/bironshaluka2003-biron" kind="github" label="GitHub" />
+          <SocialAction external href="https://www.linkedin.com/in/bironshaluka/" kind="linkedin" label="LinkedIn" />
           {/* Add the CV file at public/cv.pdf to enable this download. */}
           <SocialAction download="Biron-Shaluka-CV.pdf" href="/cv.pdf" kind="download" label="Download CV" />
         </div>

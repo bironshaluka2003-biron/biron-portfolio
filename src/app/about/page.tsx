@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import type { Metadata } from "next";
 import { AboutSection } from "@/components/about-section";
 
@@ -9,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main>
-      <AboutSection />
-    </main>
+    <ViewTransition enter="page-enter" exit="page-exit" default="none">
+      <main>
+        <AboutSection />
+      </main>
+    </ViewTransition>
   );
 }

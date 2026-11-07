@@ -2,8 +2,8 @@ export function HeroSection() {
   return (
     <main className="hero" id="home">
       <div aria-hidden="true" className="hero-atmosphere">
-        <div className="light-orb light-orb-blue" />
-        <div className="light-orb light-orb-violet" />
+        <div className="light-orb light-orb-primary" />
+        <div className="light-orb light-orb-secondary" />
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
         <div className="hero-grid" />
