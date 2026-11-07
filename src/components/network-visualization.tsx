@@ -8,9 +8,7 @@ const InteractiveNetworkGlobe = dynamic(
     ssr: false,
     loading: () => (
       <div aria-hidden="true" className="network-visualization network-loading">
-        <span className="network-loading-orbit" />
         <span className="network-loading-core" />
-        <span className="network-loading-label">INITIALIZING NETWORK</span>
       </div>
     ),
   },
