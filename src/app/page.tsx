@@ -3,6 +3,7 @@ import { HomeLanding } from "@/components/home-landing";
 import { AboutSection } from "@/components/about-section";
 import { ProjectsSection } from "@/components/projects-section";
 import { CertificationsSection } from "@/components/certifications-section";
+import { TechnologiesSection } from "@/components/technologies-section";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
         <AboutSection />
         <ProjectsSection />
         <CertificationsSection />
+        <TechnologiesSection />
       </main>
     </ViewTransition>
   );
