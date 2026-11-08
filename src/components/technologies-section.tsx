@@ -1,6 +1,5 @@
 import {
   siAnaconda,
-  siApachemaven,
   siC,
   siCisco,
   siCss,
@@ -11,22 +10,18 @@ import {
   siIntellijidea,
   siJupyter,
   siLinux,
-  siMake,
   siMysql,
   siNextdotjs,
   siPandas,
   siPython,
-  siScikitlearn,
   siSpringboot,
   siTailwindcss,
-  siThreedotjs,
-  siTypescript,
   siVercel,
   siVscodium,
 } from "simple-icons";
 
 type BrandIcon = { path: string; hex: string };
-type TechnicalMark = "java" | "network" | "subnet" | "route" | "switch" | "packet" | "terminal" | "tree" | "chart";
+type TechnicalMark = "java" | "network" | "subnet" | "route" | "switch" | "packet";
 type Technology = { name: string; icon?: BrandIcon; mark?: TechnicalMark };
 type TechnologyCategory = { id: string; number: string; title: string; items: Technology[] };
 
@@ -41,11 +36,9 @@ const categories: TechnologyCategory[] = [
       { name: "Python", icon: siPython },
       { name: "HTML", icon: siHtml5 },
       { name: "CSS", icon: siCss },
-      { name: "TypeScript", icon: siTypescript },
       { name: "Next.js", icon: siNextdotjs },
       { name: "Tailwind CSS", icon: siTailwindcss },
       { name: "Spring Boot", icon: siSpringboot },
-      { name: "Three.js", icon: siThreedotjs },
     ],
   },
   {
@@ -77,9 +70,6 @@ const categories: TechnologyCategory[] = [
       { name: "Visual Studio Code", icon: siVscodium },
       { name: "IntelliJ IDEA", icon: siIntellijidea },
       { name: "Vercel", icon: siVercel },
-      { name: "Maven", icon: siApachemaven },
-      { name: "GCC", mark: "terminal" },
-      { name: "Makefile", icon: siMake },
     ],
   },
   {
@@ -91,9 +81,6 @@ const categories: TechnologyCategory[] = [
       { name: "Google Colab", icon: siGooglecolab },
       { name: "Anaconda", icon: siAnaconda },
       { name: "Pandas", icon: siPandas },
-      { name: "Scikit-learn", icon: siScikitlearn },
-      { name: "LightGBM", mark: "tree" },
-      { name: "PCA", mark: "chart" },
     ],
   },
 ];
@@ -107,9 +94,6 @@ function FallbackMark({ kind }: { kind: TechnicalMark }) {
       {kind === "route" && <><circle cx="5" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><path d="M7 18h4a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3" /></>}
       {kind === "switch" && <><path d="M4 8h15m-4-4 4 4-4 4M20 16H5m4-4-4 4 4 4" /></>}
       {kind === "packet" && <><rect x="3.5" y="5" width="17" height="14" rx="2" /><path d="M7 9h10M7 12h6m-6 3h8" /></>}
-      {kind === "terminal" && <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m7 9 3 3-3 3m6 0h4" /></>}
-      {kind === "tree" && <><path d="M12 5v5m0 0-6 5m6-5 6 5M6 15v4m12-4v4" /><circle cx="12" cy="4" r="2" /><circle cx="6" cy="16" r="2" /><circle cx="18" cy="16" r="2" /></>}
-      {kind === "chart" && <><path d="M4 20V5m0 15h16" /><circle cx="8" cy="15" r="1" /><circle cx="11" cy="12" r="1" /><circle cx="15" cy="10" r="1" /><circle cx="18" cy="7" r="1" /></>}
     </svg>
   );
 }
@@ -124,7 +108,7 @@ function TechnologyIcon({ item }: { item: Technology }) {
     );
   }
 
-  return <FallbackMark kind={item.mark ?? "terminal"} />;
+  return <FallbackMark kind={item.mark ?? "network"} />;
 }
 
 function TechnologyCard({ item }: { item: Technology }) {
