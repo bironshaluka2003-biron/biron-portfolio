@@ -1,11 +1,97 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import * as THREE from "three";
 
 const GLOBE_RADIUS = 1.45;
 const SATELLITE_ORBIT_X = 1.92;
 const SATELLITE_ORBIT_Y = 1.78;
+const INTRO_EXIT_DURATION = 950;
+
+const INTRO_HUBS = [
+  [6.9271, 79.8612], [1.3521, 103.8198], [35.6762, 139.6503], [19.076, 72.8777],
+  [25.2048, 55.2708], [51.5072, -0.1276], [50.1109, 8.6821], [40.7128, -74.006],
+  [37.7749, -122.4194], [-33.8688, 151.2093],
+] as const;
+const INTRO_ROUTES = [[0,1],[0,3],[0,4],[1,2],[1,9],[1,8],[2,6],[3,6],[4,5],[5,6],[5,7],[6,2],[7,8]] as const;
+
+function smoothStep(value: number) {
+  const t = THREE.MathUtils.clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function introPoint(latitude: number, longitude: number, radius: number) {
+  const lat = THREE.MathUtils.degToRad(latitude);
+  const lon = THREE.MathUtils.degToRad(longitude);
+  return new THREE.Vector3(radius * Math.cos(lat) * Math.cos(lon), radius * Math.sin(lat), -radius * Math.cos(lat) * Math.sin(lon));
+}
+
+function createIntroNetwork(globeGroup: THREE.Group) {
+  const nodeGeometry = new THREE.SphereGeometry(0.026, 12, 10);
+  const nodes = INTRO_HUBS.map(([latitude, longitude], index) => {
+    const material = new THREE.MeshBasicMaterial({ color: 0x91f5e9, toneMapped: false, transparent: true, opacity: 0, depthWrite: false });
+    const node = new THREE.Mesh(nodeGeometry, material);
+    node.position.copy(introPoint(latitude, longitude, GLOBE_RADIUS + 0.026));
+    node.scale.setScalar(0.001);
+    node.userData.introIndex = index;
+    globeGroup.add(node);
+    return { node, material };
+  });
+
+  const arcs = INTRO_ROUTES.map(([from, to], index) => {
+    const [fromLatitude, fromLongitude] = INTRO_HUBS[from];
+    const [toLatitude, toLongitude] = INTRO_HUBS[to];
+    const start = introPoint(fromLatitude, fromLongitude, GLOBE_RADIUS * 1.006);
+    const end = introPoint(toLatitude, toLongitude, GLOBE_RADIUS * 1.006);
+    const angle = start.angleTo(end);
+    const control = start.clone().add(end).normalize().multiplyScalar(GLOBE_RADIUS * (1.04 + angle * 0.1));
+    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+    const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(56));
+    geometry.setDrawRange(0, 0);
+    const material = new THREE.LineBasicMaterial({ color: 0x18c6c0, transparent: true, opacity: 0, depthWrite: false });
+    const line = new THREE.Line(geometry, material);
+    line.renderOrder = 2;
+    globeGroup.add(line);
+    return { curve, geometry, material, index };
+  });
+
+  const packetGeometry = new THREE.SphereGeometry(0.014, 8, 6);
+  const packetMaterial = new THREE.MeshBasicMaterial({ color: 0xb2fff4, toneMapped: false, transparent: true, opacity: 0, depthWrite: false });
+  const packets = arcs.slice(0, 8).map((arc, index) => {
+    const packet = new THREE.Mesh(packetGeometry, packetMaterial);
+    packet.userData.routeIndex = index;
+    packet.userData.offset = index / 8;
+    globeGroup.add(packet);
+    return packet;
+  });
+
+  return {
+    update(elapsed: number, opacity: number) {
+      const fade = opacity * (1 - smoothStep((elapsed - 4.45) / 0.85));
+      nodes.forEach(({ node, material }, index) => {
+        const reveal = smoothStep((elapsed - 0.8 - index * 0.035) / 0.72);
+        const dissolve = 1 - smoothStep((elapsed - 4.05 - index * 0.025) / 0.56);
+        const pulse = 1 + Math.sin(elapsed * 2.1 + index * 0.83) * 0.12;
+        node.scale.setScalar(Math.max(0.001, reveal * pulse));
+        material.opacity = reveal * fade * dissolve;
+      });
+      arcs.forEach((arc) => {
+        const reveal = smoothStep((elapsed - 1.15 - arc.index * 0.022) / 0.78);
+        const dissolve = 1 - smoothStep((elapsed - 3.95 - arc.index * 0.035) / 0.58);
+        arc.geometry.setDrawRange(0, Math.max(0, Math.floor(57 * reveal)));
+        arc.material.opacity = reveal * 0.43 * fade * dissolve;
+      });
+      packetMaterial.opacity = fade;
+      packets.forEach((packet, index) => {
+        const route = arcs[packet.userData.routeIndex as number];
+        const progress = (elapsed * 0.17 + packet.userData.offset) % 1;
+        packet.position.copy(route.curve.getPoint(progress));
+        packet.visible = elapsed > 2.05 + index * 0.08 && fade > 0.01;
+      });
+    },
+  };
+}
 
 type GeoPoint = [number, number];
 type GeoRing = GeoPoint[];
@@ -284,6 +370,7 @@ function collectSceneResources(root: THREE.Object3D) {
 }
 
 export default function InteractiveNetworkGlobe() {
+  const pathname = usePathname();
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -301,10 +388,136 @@ export default function InteractiveNetworkGlobe() {
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [runtimeMode, setRuntimeMode] = useState<"hidden" | "intro" | "morphing" | "home" | "exiting">("hidden");
+  const runtimeModeRef = useRef(runtimeMode);
   const [countryTooltip, setCountryTooltip] = useState<CountryTooltipData | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ left: 0, top: 0 });
   const [clockNow, setClockNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const root = document.documentElement;
+    let exitStarted = false;
+    let exitTimer = 0;
+    let placementFrame = 0;
+    let transitionFrame = 0;
+    let followFrame = 0;
+
+    const targetElement = () => document.querySelector<HTMLElement>("[data-network-globe-target]");
+    const setMode = (mode: typeof runtimeMode) => {
+      if (mode !== "home") {
+        pointerRef.current.overGlobe = false;
+        dragRef.current = null;
+        touchPopupPinnedRef.current = false;
+        cancelCountryLookupRef.current?.();
+        dismissTooltipRef.current?.();
+      }
+      runtimeModeRef.current = mode;
+      setRuntimeMode(mode);
+    };
+    const setBounds = (rect: DOMRect) => {
+      stage.style.left = `${rect.left}px`;
+      stage.style.top = `${rect.top}px`;
+      stage.style.width = `${rect.width}px`;
+      stage.style.height = `${rect.height}px`;
+    };
+    const followTarget = () => {
+      if (runtimeModeRef.current !== "home") return;
+      if (followFrame) return;
+      followFrame = window.requestAnimationFrame(() => {
+        followFrame = 0;
+        if (runtimeModeRef.current !== "home") return;
+        const target = targetElement();
+        if (target) setBounds(target.getBoundingClientRect());
+      });
+    };
+    const place = () => {
+      const target = targetElement();
+      const phaseIsExit = root.dataset.portfolioIntroPhase === "exit";
+
+      if (phaseIsExit && exitStarted) {
+        if (runtimeModeRef.current === "morphing" && target && pathname === "/") {
+          setBounds(target.getBoundingClientRect());
+        }
+        return;
+      }
+
+      if (phaseIsExit && !exitStarted) {
+        exitStarted = true;
+        const destination = target?.getBoundingClientRect();
+        if (destination && pathname === "/") {
+          setMode("morphing");
+          stage.style.transition = `left ${INTRO_EXIT_DURATION}ms cubic-bezier(.22,.75,.25,1), top ${INTRO_EXIT_DURATION}ms cubic-bezier(.22,.75,.25,1), width ${INTRO_EXIT_DURATION}ms cubic-bezier(.22,.75,.25,1), height ${INTRO_EXIT_DURATION}ms cubic-bezier(.22,.75,.25,1)`;
+          transitionFrame = window.requestAnimationFrame(() => setBounds(destination));
+          window.clearTimeout(exitTimer);
+          exitTimer = window.setTimeout(() => {
+            if (runtimeModeRef.current !== "morphing") return;
+            stage.style.transition = "none";
+            setMode("home");
+            followTarget();
+          }, INTRO_EXIT_DURATION + 30);
+        } else {
+          setMode("exiting");
+          stage.style.transition = `opacity ${INTRO_EXIT_DURATION}ms ease`;
+          stage.style.opacity = "0";
+        }
+        return;
+      }
+
+      if (root.dataset.portfolioIntroActive === "true") {
+        if (exitStarted) return;
+        setMode("intro");
+        stage.style.transition = "none";
+        stage.style.opacity = "1";
+        setBounds(new DOMRect(0, 0, window.innerWidth, window.innerHeight));
+        return;
+      }
+
+      if (!root.dataset.portfolioIntroActive && exitStarted) {
+        exitStarted = false;
+        stage.style.transition = "none";
+        stage.style.opacity = "1";
+      }
+      if (target && pathname === "/") {
+        stage.style.transition = "none";
+        setMode("home");
+        setBounds(target.getBoundingClientRect());
+      } else {
+        setMode("hidden");
+      }
+    };
+
+    const schedulePlace = () => {
+      if (placementFrame) window.cancelAnimationFrame(placementFrame);
+      placementFrame = window.requestAnimationFrame(place);
+    };
+    const handleScroll = () => {
+      if (runtimeModeRef.current === "home") followTarget();
+      else if (runtimeModeRef.current === "morphing") schedulePlace();
+    };
+    const observer = new MutationObserver(schedulePlace);
+    observer.observe(root, { attributes: true, attributeFilter: ["data-portfolio-intro-active", "data-portfolio-intro-phase"] });
+    const bodyObserver = new MutationObserver(schedulePlace);
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", schedulePlace);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.visualViewport?.addEventListener("resize", schedulePlace);
+    schedulePlace();
+
+    return () => {
+      observer.disconnect();
+      bodyObserver.disconnect();
+      window.removeEventListener("resize", schedulePlace);
+      window.removeEventListener("scroll", handleScroll);
+      window.visualViewport?.removeEventListener("resize", schedulePlace);
+      if (placementFrame) window.cancelAnimationFrame(placementFrame);
+      if (transitionFrame) window.cancelAnimationFrame(transitionFrame);
+      if (followFrame) window.cancelAnimationFrame(followFrame);
+      window.clearTimeout(exitTimer);
+    };
+  }, [pathname]);
 
   const queueCountryLookup = (request: PointerLookupRequest) => {
     pendingLookupRef.current = request;
@@ -461,6 +674,7 @@ export default function InteractiveNetworkGlobe() {
 
     const satellite = createSatellite();
     satelliteOrbit.add(satellite);
+    const introNetwork = createIntroNetwork(globeGroup);
     const tangent = new THREE.Vector3();
     const right = new THREE.Vector3();
     const up = new THREE.Vector3();
@@ -486,6 +700,7 @@ export default function InteractiveNetworkGlobe() {
     let frameId = 0;
     let previousTime = 0;
     let elapsed = 0;
+    let introExitStartedAt: number | null = null;
     const raycaster = new THREE.Raycaster();
     const rayPointer = new THREE.Vector2();
     let geoData: GlobeGeoData | null = null;
@@ -635,6 +850,13 @@ export default function InteractiveNetworkGlobe() {
       previousTime = time;
       elapsed += delta;
 
+      const introRoot = document.documentElement;
+      const introActive = introRoot.dataset.portfolioIntroActive === "true";
+      const introExiting = introRoot.dataset.portfolioIntroPhase === "exit";
+      if (introExiting && introExitStartedAt === null) introExitStartedAt = time;
+      const exitFade = introExitStartedAt === null ? 0 : smoothStep((time - introExitStartedAt) / INTRO_EXIT_DURATION);
+      introNetwork.update(elapsed, introActive ? (introExiting ? 1 - exitFade : 1) : 0);
+
       if (!reduceMotion) {
         satellite.position.set(
           SATELLITE_ORBIT_X * Math.cos(elapsed * 0.24),
@@ -671,8 +893,9 @@ export default function InteractiveNetworkGlobe() {
     };
 
     const syncRenderVisibility = () => {
-      const shouldRender =
-        stageInViewport && document.documentElement.dataset.portfolioIntroActive !== "true";
+      const shouldRender = stageInViewport ||
+        document.documentElement.dataset.portfolioIntroActive === "true" ||
+        runtimeModeRef.current === "morphing";
       if (visible === shouldRender) return;
       visible = shouldRender;
       if (visible) {
@@ -693,7 +916,7 @@ export default function InteractiveNetworkGlobe() {
     const introObserver = new MutationObserver(syncRenderVisibility);
     introObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-portfolio-intro-active"],
+      attributeFilter: ["data-portfolio-intro-active", "data-portfolio-intro-phase"],
     });
 
     const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
@@ -851,7 +1074,7 @@ export default function InteractiveNetworkGlobe() {
   return (
     <div
       aria-label="Interactive 3D Earth globe"
-      className={unavailable ? "network-visualization network-unavailable" : "network-visualization"}
+      className={`network-visualization network-runtime network-runtime-${runtimeMode}${unavailable ? " network-unavailable" : ""}`}
       onKeyDown={handleKeyDown}
       onPointerCancel={handlePointerCancel}
       onPointerDown={handlePointerDown}
@@ -860,7 +1083,7 @@ export default function InteractiveNetworkGlobe() {
       onPointerLeave={handlePointerLeave}
       ref={stageRef}
       role="group"
-      tabIndex={0}
+      tabIndex={runtimeMode === "home" ? 0 : -1}
     >
       <canvas aria-hidden="true" className="network-canvas" ref={canvasRef} />
       {countryTooltip && (
