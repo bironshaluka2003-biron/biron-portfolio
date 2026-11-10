@@ -506,6 +506,7 @@ a { color: inherit; text-decoration: none; }
 .home-introduction { max-width: 570px; margin: 17px 0 0; color: #99a8a7; font-size: 14px; line-height: 1.9; }
 .social-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 34px; }
 .social-action { display: inline-flex; min-width: 154px; min-height: 52px; align-items: center; gap: 12px; padding: 0 14px; border: 1px solid #ffffff19; border-radius: 7px; background: linear-gradient(130deg,#ffffff08,#ffffff03); box-shadow: inset 0 1px #ffffff08; color: #e9e8f0; transition: transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease; }
+.social-action:where(button) { font: inherit; text-align: left; cursor: pointer; }
 .social-action:hover { transform: translateY(-3px); border-color: #92f1ec70; background: linear-gradient(130deg,#7eefe91a,#ffffff06); box-shadow: 0 10px 28px #0005,0 0 25px #6cede70e,inset 0 1px #ffffff14; }
 .social-action:focus-visible { outline: 2px solid #96f2ed; outline-offset: 3px; }
 .social-action-icon { display: grid; width: 23px; height: 23px; place-items: center; color: #c8d8d7; }
@@ -807,4 +808,37 @@ html[data-portfolio-intro-seen="true"] .portfolio-intro { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .experience-card,.experience-entry.is-visible .experience-card { animation: none; transition: none; }
+}
+
+/* CV viewing and download dialog */
+.cv-dialog { position: fixed; inset: 0; display: grid; width: 100%; height: 100%; max-width: none; max-height: none; place-items: center; overflow: auto; padding: max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left)); margin: 0; border: 0; background: transparent; color: var(--foreground); }
+.cv-dialog:not([open]) { display: none; }
+.cv-dialog[open] { display: grid; }
+.cv-dialog::backdrop { background: #031011c9; backdrop-filter: blur(8px); animation: cv-backdrop-enter .2s ease both; }
+.cv-modal-card { position: relative; width: min(100%,470px); padding: clamp(25px,5vw,36px); border: 1px solid #18c6c052; border-radius: 14px; background: radial-gradient(ellipse at 100% 0%,#18c6c012,transparent 42%),linear-gradient(145deg,#183a3b,#102b2d 76%); box-shadow: 0 30px 95px #0009,0 0 48px #18c6c013,inset 0 1px #ffffff12; animation: cv-card-enter .28s cubic-bezier(.2,.8,.2,1) both; }
+.cv-modal-close { position: absolute; top: 13px; right: 13px; display: grid; width: 40px; height: 40px; place-items: center; padding: 0; border: 1px solid #28504f; border-radius: 8px; background: #07141670; color: #a3b8b5; cursor: pointer; transition: border-color .2s ease,color .2s ease,background .2s ease; }
+.cv-modal-close:hover { border-color: var(--accent); background: #18c6c014; color: var(--highlight); }
+.cv-modal-close:focus-visible,.cv-modal-actions a:focus-visible { outline: 2px solid var(--highlight); outline-offset: 3px; }
+.cv-modal-close svg { width: 18px; height: 18px; }
+.cv-modal-eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 52px 17px 0; color: #9bb7b4; font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .17em; }
+.cv-modal-eyebrow span { width: 18px; height: 1px; background: var(--accent); }
+.cv-modal-card h2 { margin: 0; color: var(--foreground); font-size: clamp(27px,6vw,34px); font-weight: 540; letter-spacing: -.05em; }
+.cv-modal-description { margin: 11px 0 25px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.cv-modal-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.cv-modal-actions a { display: inline-flex; min-width: 0; min-height: 48px; align-items: center; justify-content: center; gap: 9px; padding: 0 12px; border: 1px solid #18c6c061; border-radius: 7px; background: #07141666; color: #cce5e2; font-size: 11px; font-weight: 520; transition: border-color .2s ease,color .2s ease,background .2s ease,transform .2s ease,box-shadow .2s ease; }
+.cv-modal-actions a:hover { transform: translateY(-2px); border-color: var(--accent); background: #18c6c015; color: var(--highlight); box-shadow: 0 8px 22px #0004,0 0 18px #18c6c014; }
+.cv-modal-actions a.is-primary { border-color: #18c6c0a0; background: linear-gradient(110deg,#18c6c01c,#20d8ce0e); color: var(--foreground); }
+.cv-modal-actions a.is-primary:hover { background: #18c6c02b; }
+.cv-modal-actions svg { width: 17px; height: 17px; flex: 0 0 auto; color: var(--accent-secondary); }
+@keyframes cv-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cv-card-enter { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 460px) {
+  .cv-dialog { padding-inline: max(14px,env(safe-area-inset-left)) max(14px,env(safe-area-inset-right)); }
+  .cv-modal-card { padding: 25px 20px 20px; }
+  .cv-modal-actions { grid-template-columns: 1fr; }
+  .cv-modal-actions a { min-height: 50px; justify-content: flex-start; padding-inline: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-dialog::backdrop,.cv-modal-card { animation: none; }
+  .cv-modal-close,.cv-modal-actions a { transition: none; }
 }

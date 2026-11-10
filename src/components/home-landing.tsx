@@ -1,3 +1,7 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import { CvModal } from "@/components/cv-modal";
 import { NetworkVisualization } from "@/components/network-visualization";
 
 type SocialActionProps = {
@@ -6,6 +10,7 @@ type SocialActionProps = {
   kind: "github" | "linkedin" | "download";
   download?: string;
   external?: boolean;
+  onClick?: () => void;
 };
 
 function ActionIcon({ kind }: { kind: SocialActionProps["kind"] }) {
@@ -33,7 +38,21 @@ function ActionIcon({ kind }: { kind: SocialActionProps["kind"] }) {
   );
 }
 
-function SocialAction({ href, label, kind, download, external }: SocialActionProps) {
+function SocialAction({ href, label, kind, download, external, onClick }: SocialActionProps) {
+  const content = (
+    <>
+      <span className={`social-action-icon social-action-icon-${kind}`}>
+        <ActionIcon kind={kind} />
+      </span>
+      <span className="social-action-label">{label}</span>
+      <span aria-hidden="true" className="social-action-arrow">{external ? "↗" : "↓"}</span>
+    </>
+  );
+
+  if (onClick) {
+    return <button className="social-action" onClick={onClick} type="button">{content}</button>;
+  }
+
   return (
     <a
       className="social-action"
@@ -42,16 +61,15 @@ function SocialAction({ href, label, kind, download, external }: SocialActionPro
       rel={external ? "noopener noreferrer" : undefined}
       target={external ? "_blank" : undefined}
     >
-      <span className={`social-action-icon social-action-icon-${kind}`}>
-        <ActionIcon kind={kind} />
-      </span>
-      <span className="social-action-label">{label}</span>
-      <span aria-hidden="true" className="social-action-arrow">{external ? "↗" : "↓"}</span>
+      {content}
     </a>
   );
 }
 
 export function HomeLanding() {
+  const [isCvModalOpen, setIsCvModalOpen] = useState(false);
+  const closeCvModal = useCallback(() => setIsCvModalOpen(false), []);
+
   return (
     <section aria-labelledby="home-title" className="home-landing" id="home">
       <div aria-hidden="true" className="home-atmosphere">
@@ -77,8 +95,7 @@ export function HomeLanding() {
         <section aria-label="Social profiles and CV" className="social-actions">
           <SocialAction external href="https://github.com/bironshaluka2003-biron" kind="github" label="GitHub" />
           <SocialAction external href="https://www.linkedin.com/in/bironshaluka/" kind="linkedin" label="LinkedIn" />
-          {/* Add the CV file at public/cv.pdf to enable this download. */}
-          <SocialAction download="Biron-Shaluka-CV.pdf" href="/cv.pdf" kind="download" label="Download CV" />
+          <SocialAction href="/Biron-Shaluka-CV.pdf" kind="download" label="Download CV" onClick={() => setIsCvModalOpen(true)} />
         </section>
 
         <div className="home-footnote"><span /> NETWORKS · SYSTEMS · INFRASTRUCTURE</div>
@@ -88,6 +105,7 @@ export function HomeLanding() {
       </div>
 
       <div aria-hidden="true" className="home-index"><span>PORTFOLIO</span><span>01</span></div>
+      <CvModal isOpen={isCvModalOpen} onClose={closeCvModal} />
     </section>
   );
 }
