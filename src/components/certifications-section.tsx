@@ -97,7 +97,10 @@ const universityCertificates: Achievement[] = [
   },
 ];
 
-const allAchievements = [...achievements, ...universityCertificates];
+const organizationPages = [
+  { id: "cisco", name: "Cisco Networking Academy", total: "07 LEARNING ACHIEVEMENTS", achievements },
+  { id: "moratuwa", name: "University of Moratuwa", total: "01 CERTIFICATE", achievements: universityCertificates },
+];
 
 function AchievementArtwork({ visual }: { visual: AchievementVisual }) {
   if (visual === "official-badge") {
@@ -198,7 +201,7 @@ export function CertificationsSection() {
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const hasDraggedRef = useRef(false);
-  const [activeAchievement, setActiveAchievement] = useState(0);
+  const [activeOrganization, setActiveOrganization] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isPointerActive, setIsPointerActive] = useState(false);
@@ -210,11 +213,11 @@ export function CertificationsSection() {
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [transitionFrom, setTransitionFrom] = useState<{ index: number; direction: -1 | 1 } | null>(null);
 
-  const showAchievement = (index: number, direction: -1 | 1) => {
-    const nextIndex = (index + allAchievements.length) % allAchievements.length;
-    if (nextIndex === activeAchievement) return;
-    setTransitionFrom({ index: activeAchievement, direction });
-    setActiveAchievement(nextIndex);
+  const showOrganization = (index: number, direction: -1 | 1) => {
+    const nextIndex = (index + organizationPages.length) % organizationPages.length;
+    if (nextIndex === activeOrganization) return;
+    setTransitionFrom({ index: activeOrganization, direction });
+    setActiveOrganization(nextIndex);
     setDragOffset(0);
     setResumeAfter(0);
   };
@@ -262,7 +265,7 @@ export function CertificationsSection() {
     const offsetX = event.clientX - start.x;
     if (hasDraggedRef.current && Math.abs(offsetX) > 55) {
       const direction = offsetX < 0 ? 1 : -1;
-      showAchievement(activeAchievement + direction, direction);
+      showOrganization(activeOrganization + direction, direction);
     }
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     pointerStartRef.current = null;
@@ -277,10 +280,10 @@ export function CertificationsSection() {
     if ((event.target as HTMLElement).closest("a, button, input, select, textarea")) return;
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      showAchievement(activeAchievement + 1, 1);
+      showOrganization(activeOrganization + 1, 1);
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
-      showAchievement(activeAchievement - 1, -1);
+      showOrganization(activeOrganization - 1, -1);
     }
   };
 
@@ -307,14 +310,14 @@ export function CertificationsSection() {
   }, []);
 
   useLayoutEffect(() => {
-    const activeSlide = slideRefs.current[activeAchievement];
+    const activeSlide = slideRefs.current[activeOrganization];
     if (!activeSlide) return;
     const measureActiveSlide = () => setViewportHeight(activeSlide.scrollHeight);
     measureActiveSlide();
     const resizeObserver = new ResizeObserver(measureActiveSlide);
     resizeObserver.observe(activeSlide);
     return () => resizeObserver.disconnect();
-  }, [activeAchievement]);
+  }, [activeOrganization]);
 
   useEffect(() => {
     if (!transitionFrom) return;
@@ -330,16 +333,13 @@ export function CertificationsSection() {
       return () => window.clearTimeout(resumeTimeout);
     }
     const autoplayTimeout = window.setTimeout(() => {
-      setTransitionFrom({ index: activeAchievement, direction: 1 });
-      setActiveAchievement((current) => (current + 1) % allAchievements.length);
+      setTransitionFrom({ index: activeOrganization, direction: 1 });
+      setActiveOrganization((current) => (current + 1) % organizationPages.length);
       setDragOffset(0);
       setResumeAfter(0);
     }, 5000);
     return () => window.clearTimeout(autoplayTimeout);
-  }, [activeAchievement, isDragging, isDocumentVisible, isFocusedWithin, isHovered, isPointerActive, prefersReducedMotion, resumeAfter]);
-
-  const activeProvider = allAchievements[activeAchievement].issuer ?? "Cisco Networking Academy";
-  const activeProviderIsCisco = !allAchievements[activeAchievement].issuer;
+  }, [activeOrganization, isDragging, isDocumentVisible, isFocusedWithin, isHovered, isPointerActive, prefersReducedMotion, resumeAfter]);
 
   return (
     <section aria-labelledby="certifications-title" className="certifications-page" data-scroll-transition="CERTIFICATIONS" id="certifications">
@@ -357,14 +357,7 @@ export function CertificationsSection() {
           </p>
         </header>
 
-        <section aria-label="Certification and achievement carousel" className="certifications-provider">
-          <div className="certifications-section-heading">
-            <div>
-              <p className="certifications-section-label">CREDENTIALS / {activeProviderIsCisco ? "01" : "02"}</p>
-              <h2 id="certification-provider-heading">{activeProvider}</h2>
-            </div>
-            <span className="certifications-total">{activeProviderIsCisco ? "07 LEARNING ACHIEVEMENTS" : "01 CERTIFICATE"}</span>
-          </div>
+        <section aria-label="Organization credential carousel" className="certifications-provider">
           <div
             className="projects-shell project-carousel-area certification-carousel-area"
             onBlurCapture={handleCarouselBlur}
@@ -375,17 +368,17 @@ export function CertificationsSection() {
             <div className="project-carousel-controls">
               <span className="project-carousel-hint">EXPLORE CREDENTIALS</span>
               <div className="project-carousel-arrows">
-                <button aria-label="Previous certification" className="project-carousel-arrow" onClick={() => showAchievement(activeAchievement - 1, -1)} type="button">
+                <button aria-label="Previous organization" className="project-carousel-arrow" onClick={() => showOrganization(activeOrganization - 1, -1)} type="button">
                   <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
-                <button aria-label="Next certification" className="project-carousel-arrow" onClick={() => showAchievement(activeAchievement + 1, 1)} type="button">
+                <button aria-label="Next organization" className="project-carousel-arrow" onClick={() => showOrganization(activeOrganization + 1, 1)} type="button">
                   <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
                 </button>
               </div>
             </div>
 
             <div
-              aria-label="Certification carousel. Use left and right arrow keys to change credentials."
+              aria-label="Certification organization carousel. Use left and right arrow keys to change organizations."
               className={`project-carousel-viewport${isDragging ? " is-dragging" : ""}`}
               onKeyDown={handleCarouselKeyDown}
               onPointerCancel={finishPointerGesture}
@@ -397,8 +390,8 @@ export function CertificationsSection() {
               tabIndex={0}
             >
               <div className={`project-carousel-track${isDragging ? " is-dragging" : ""}`}>
-                {allAchievements.map((achievement, index) => {
-                  const isActive = activeAchievement === index;
+                {organizationPages.map((organization, index) => {
+                  const isActive = activeOrganization === index;
                   const isExiting = transitionFrom?.index === index;
                   const entryDirection = transitionFrom?.direction === 1 ? "right" : "left";
                   const exitDirection = transitionFrom?.direction === 1 ? "left" : "right";
@@ -406,11 +399,11 @@ export function CertificationsSection() {
                   return (
                     <div
                       aria-hidden={!isActive}
-                      aria-label={`${index + 1} of ${allAchievements.length}: ${achievement.title}`}
+                      aria-label={`${organization.name}, page ${index + 1} of ${organizationPages.length}`}
                       aria-roledescription="slide"
                       className={slideClass}
                       inert={!isActive}
-                      key={`${achievement.type}-${achievement.title}`}
+                      key={organization.id}
                       ref={(element) => { slideRefs.current[index] = element; }}
                       role="group"
                       style={isDragging ? {
@@ -418,23 +411,42 @@ export function CertificationsSection() {
                         opacity: isActive ? Math.max(0.5, 1 - Math.abs(dragOffset) / 600) : Math.min(1, Math.abs(dragOffset) / 90),
                       } : undefined}
                     >
-                      <AchievementCard achievement={achievement} index={index} />
+                      <div className="certification-organization-page">
+                        <div className="certifications-section-heading">
+                          <div>
+                            <p className="certifications-section-label">CREDENTIALS / {String(index + 1).padStart(2, "0")}</p>
+                            <h2 id={`certification-provider-${organization.id}`}>{organization.name}</h2>
+                          </div>
+                          <span className="certifications-total">{organization.total}</span>
+                        </div>
+                        <div className={`achievement-grid${organization.id === "moratuwa" ? " achievement-grid-single" : ""}`}>
+                          {organization.achievements.map((achievement, achievementIndex) => (
+                            <AchievementCard
+                              achievement={achievement}
+                              index={achievementIndex}
+                              key={`${achievement.type}-${achievement.title}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div aria-label="Choose a certification" className="project-carousel-pagination">
-              <span aria-live="polite" className="project-carousel-counter">{String(activeAchievement + 1).padStart(2, "0")} <i>/</i> {String(allAchievements.length).padStart(2, "0")}</span>
+            <div aria-label="Choose an organization" className="project-carousel-pagination">
+              <span aria-live="polite" className="project-carousel-counter">
+                {organizationPages[activeOrganization].name} <i>–</i> {activeOrganization + 1}/{organizationPages.length}
+              </span>
               <div className="project-carousel-dots">
-                {allAchievements.map((achievement, index) => (
+                {organizationPages.map((organization, index) => (
                   <button
-                    aria-current={activeAchievement === index ? "true" : undefined}
-                    aria-label={`Show ${achievement.title} (${index + 1} of ${allAchievements.length})`}
-                    className={`project-carousel-dot${activeAchievement === index ? " is-active" : ""}`}
-                    key={`${achievement.type}-${achievement.title}-dot`}
-                    onClick={() => showAchievement(index, index > activeAchievement ? 1 : -1)}
+                    aria-current={activeOrganization === index ? "true" : undefined}
+                    aria-label={`Show ${organization.name} page (${index + 1} of ${organizationPages.length})`}
+                    className={`project-carousel-dot${activeOrganization === index ? " is-active" : ""}`}
+                    key={`${organization.id}-dot`}
+                    onClick={() => showOrganization(index, index > activeOrganization ? 1 : -1)}
                     type="button"
                   />
                 ))}

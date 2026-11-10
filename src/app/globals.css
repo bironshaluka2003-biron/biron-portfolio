@@ -248,7 +248,6 @@ a { color: inherit; text-decoration: none; }
 .certifications-section-heading h2 { margin: 0; color: var(--foreground); font-size: clamp(23px,3vw,31px); font-weight: 520; letter-spacing: -.045em; }
 .certifications-total { flex: 0 0 auto; padding-bottom: 4px; color: #829a98; font-family: var(--font-geist-mono),monospace; font-size: 8px; letter-spacing: .13em; }
 .achievement-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; }
-.certification-carousel-area .project-carousel-slide > .achievement-card { width: min(100%,620px); margin: 0 auto; }
 .achievement-card { position: relative; display: flex; min-width: 0; flex-direction: column; overflow: hidden; padding: 17px 18px 16px; border: 1px solid #28504fbd; border-radius: 12px; background: linear-gradient(145deg,#183a3bba,#102b2d 74%); box-shadow: 0 17px 44px #0003,inset 0 1px #ffffff09; opacity: 0; animation: certification-reveal .62s cubic-bezier(.2,.7,.2,1) both; transition: transform .24s ease,border-color .24s ease,background .24s ease,box-shadow .24s ease; }
 .achievement-card:hover { transform: translateY(-4px); border-color: #18c6c080; background: linear-gradient(145deg,#183a3b,#102b2d 82%); box-shadow: 0 24px 52px #0005,0 0 28px #18c6c012,inset 0 1px #ffffff12; }
 .achievement-card-topline { display: flex; min-height: 18px; align-items: center; justify-content: space-between; }
@@ -274,8 +273,12 @@ a { color: inherit; text-decoration: none; }
 .achievement-verify-link:focus-visible { outline: 2px solid var(--highlight); outline-offset: 3px; }
 @keyframes certification-reveal { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 900px) { .achievement-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; } }
+@media (min-width: 601px) {
+  .certification-carousel-area .achievement-grid-single { grid-template-columns: minmax(0,620px); justify-content: center; }
+}
 @media (max-width: 600px) { .certifications-page { padding: 53px 0 60px; } .certifications-shell { width: min(88%,480px); } .certifications-heading h1 { font-size: clamp(37px,9.2vw,51px); } .certifications-subtitle { font-size: 12px; } .certifications-provider { margin-top: 49px; } .certifications-section-heading { align-items: start; flex-direction: column; gap: 12px; margin-bottom: 18px; } .achievement-grid { grid-template-columns: 1fr; gap: 12px; } .achievement-card { padding: 16px; } .achievement-artwork { height: 136px; } .achievement-card-copy { min-height: auto; } .achievement-meta > div { justify-content: flex-start; } .achievement-meta dd { text-align: left; } }
 @media (max-width: 600px) {
+  .certification-carousel-area .achievement-grid-single { grid-template-columns: minmax(0,1fr); }
   .certification-carousel-area .project-carousel-pagination { gap: 8px; }
   .certification-carousel-area .project-carousel-dots { gap: 2px; }
   .certification-carousel-area .project-carousel-dot { width: 22px; }
