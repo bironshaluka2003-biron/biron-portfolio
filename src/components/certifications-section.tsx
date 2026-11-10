@@ -1,3 +1,8 @@
+'use client';
+
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { FocusEvent, KeyboardEvent, PointerEvent } from "react";
+
 const introductionToIotBadgeImage =
   "https://images.credly.com/images/fce226c2-0f13-4e17-b60c-24fa6ffd88cb/Intro2IoT.png";
 
@@ -8,12 +13,18 @@ type AchievementVisual = "official-badge" | "certificate" | "iot" | "security" |
 
 type Achievement = {
   title: string;
-  type: "Digital Badge" | "Course Certificate" | "Module Achievement";
+  type: "Digital Badge" | "Course Certificate" | "Module Achievement" | "University Certificate";
   issueDate: string;
   dateTime: string;
   visual: AchievementVisual;
+  issuer?: string;
+  department?: string;
+  faculty?: string;
+  verificationCode?: string;
   verified?: boolean;
   verificationUrl?: string;
+  verificationLabel?: string;
+  pdfUrl?: string;
 };
 
 const achievements: Achievement[] = [
@@ -69,6 +80,24 @@ const achievements: Achievement[] = [
     visual: "programming",
   },
 ];
+
+const universityCertificates: Achievement[] = [
+  {
+    title: "Web Design for Beginners",
+    type: "University Certificate",
+    issueDate: "December 2024",
+    dateTime: "2024-12",
+    visual: "certificate",
+    issuer: "University of Moratuwa",
+    department: "Department of Information Technology",
+    faculty: "Faculty of Information Technology",
+    verificationCode: "LSHBuLZp0P",
+    verificationUrl: "https://open.uom.lk/verify",
+    verificationLabel: "Verify Certificate",
+  },
+];
+
+const allAchievements = [...achievements, ...universityCertificates];
 
 function AchievementArtwork({ visual }: { visual: AchievementVisual }) {
   if (visual === "official-badge") {
@@ -134,7 +163,7 @@ function AchievementArtwork({ visual }: { visual: AchievementVisual }) {
 
 function AchievementCard({ achievement, index }: { achievement: Achievement; index: number }) {
   return (
-    <article className={`achievement-card${achievement.verified ? " achievement-card-verified" : ""}`} style={{ animationDelay: `${index * 65}ms` }}>
+    <article className={`achievement-card${achievement.verified ? " achievement-card-verified" : ""}`}>
       <div className="achievement-card-topline">
         <span className="achievement-index">{String(index + 1).padStart(2, "0")}</span>
         {achievement.verified && <span className="achievement-verified"><span aria-hidden="true" />Verified</span>}
@@ -145,12 +174,20 @@ function AchievementCard({ achievement, index }: { achievement: Achievement; ind
         <h3>{achievement.title}</h3>
       </div>
       <dl className="achievement-meta">
-        <div><dt>Issuer</dt><dd>Cisco Networking Academy</dd></div>
+        <div><dt>Issuer</dt><dd>{achievement.issuer ?? "Cisco Networking Academy"}</dd></div>
+        {achievement.department && <div><dt>Department</dt><dd>{achievement.department}</dd></div>}
+        {achievement.faculty && <div><dt>Faculty</dt><dd>{achievement.faculty}</dd></div>}
         <div><dt>Issue date</dt><dd><time dateTime={achievement.dateTime}>{achievement.issueDate}</time></dd></div>
+        {achievement.verificationCode && <div><dt>Verification code</dt><dd><code>{achievement.verificationCode}</code></dd></div>}
       </dl>
       {achievement.verificationUrl && (
         <a className="achievement-verify-link" href={achievement.verificationUrl} rel="noopener noreferrer" target="_blank">
-          Verify Credential <span aria-hidden="true">↗</span>
+          {achievement.verificationLabel ?? "Verify Credential"} <span aria-hidden="true">↗</span>
+        </a>
+      )}
+      {achievement.pdfUrl && (
+        <a className="achievement-verify-link" href={achievement.pdfUrl} rel="noopener noreferrer" target="_blank">
+          View Certificate PDF <span aria-hidden="true">↗</span>
         </a>
       )}
     </article>
@@ -158,6 +195,152 @@ function AchievementCard({ achievement, index }: { achievement: Achievement; ind
 }
 
 export function CertificationsSection() {
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const hasDraggedRef = useRef(false);
+  const [activeAchievement, setActiveAchievement] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isPointerActive, setIsPointerActive] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocusedWithin, setIsFocusedWithin] = useState(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [resumeAfter, setResumeAfter] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [transitionFrom, setTransitionFrom] = useState<{ index: number; direction: -1 | 1 } | null>(null);
+
+  const showAchievement = (index: number, direction: -1 | 1) => {
+    const nextIndex = (index + allAchievements.length) % allAchievements.length;
+    if (nextIndex === activeAchievement) return;
+    setTransitionFrom({ index: activeAchievement, direction });
+    setActiveAchievement(nextIndex);
+    setDragOffset(0);
+    setResumeAfter(0);
+  };
+
+  const scheduleResume = () => setResumeAfter(Date.now() + 2000);
+
+  const handleCarouselPointerEnter = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse") setIsHovered(true);
+  };
+
+  const handleCarouselPointerLeave = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse") {
+      setIsHovered(false);
+      scheduleResume();
+    }
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if ((event.target as HTMLElement).closest("a, button, input, select, textarea")) return;
+    pointerStartRef.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    hasDraggedRef.current = false;
+    setIsPointerActive(true);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const offsetX = event.clientX - start.x;
+    const offsetY = event.clientY - start.y;
+    if (!hasDraggedRef.current && Math.abs(offsetX) > 8 && Math.abs(offsetX) > Math.abs(offsetY)) {
+      hasDraggedRef.current = true;
+      setIsDragging(true);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    if (hasDraggedRef.current) {
+      event.preventDefault();
+      setDragOffset(offsetX);
+    }
+  };
+
+  const finishPointerGesture = (event: PointerEvent<HTMLDivElement>) => {
+    const start = pointerStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const offsetX = event.clientX - start.x;
+    if (hasDraggedRef.current && Math.abs(offsetX) > 55) {
+      const direction = offsetX < 0 ? 1 : -1;
+      showAchievement(activeAchievement + direction, direction);
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    pointerStartRef.current = null;
+    hasDraggedRef.current = false;
+    setIsDragging(false);
+    setIsPointerActive(false);
+    setDragOffset(0);
+    scheduleResume();
+  };
+
+  const handleCarouselKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("a, button, input, select, textarea")) return;
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showAchievement(activeAchievement + 1, 1);
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showAchievement(activeAchievement - 1, -1);
+    }
+  };
+
+  const handleCarouselFocus = () => setIsFocusedWithin(true);
+  const handleCarouselBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsFocusedWithin(false);
+      scheduleResume();
+    }
+  };
+
+  useEffect(() => {
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotionPreference = () => setPrefersReducedMotion(motionPreference.matches);
+    const updateDocumentVisibility = () => setIsDocumentVisible(document.visibilityState === "visible");
+    updateMotionPreference();
+    updateDocumentVisibility();
+    motionPreference.addEventListener("change", updateMotionPreference);
+    document.addEventListener("visibilitychange", updateDocumentVisibility);
+    return () => {
+      motionPreference.removeEventListener("change", updateMotionPreference);
+      document.removeEventListener("visibilitychange", updateDocumentVisibility);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const activeSlide = slideRefs.current[activeAchievement];
+    if (!activeSlide) return;
+    const measureActiveSlide = () => setViewportHeight(activeSlide.scrollHeight);
+    measureActiveSlide();
+    const resizeObserver = new ResizeObserver(measureActiveSlide);
+    resizeObserver.observe(activeSlide);
+    return () => resizeObserver.disconnect();
+  }, [activeAchievement]);
+
+  useEffect(() => {
+    if (!transitionFrom) return;
+    const timeout = window.setTimeout(() => setTransitionFrom(null), prefersReducedMotion ? 0 : 580);
+    return () => window.clearTimeout(timeout);
+  }, [transitionFrom, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || isHovered || isFocusedWithin || isPointerActive || isDragging || !isDocumentVisible) return;
+    const remainingPause = resumeAfter - Date.now();
+    if (remainingPause > 0) {
+      const resumeTimeout = window.setTimeout(() => setResumeAfter(0), remainingPause);
+      return () => window.clearTimeout(resumeTimeout);
+    }
+    const autoplayTimeout = window.setTimeout(() => {
+      setTransitionFrom({ index: activeAchievement, direction: 1 });
+      setActiveAchievement((current) => (current + 1) % allAchievements.length);
+      setDragOffset(0);
+      setResumeAfter(0);
+    }, 5000);
+    return () => window.clearTimeout(autoplayTimeout);
+  }, [activeAchievement, isDragging, isDocumentVisible, isFocusedWithin, isHovered, isPointerActive, prefersReducedMotion, resumeAfter]);
+
+  const activeProvider = allAchievements[activeAchievement].issuer ?? "Cisco Networking Academy";
+  const activeProviderIsCisco = !allAchievements[activeAchievement].issuer;
+
   return (
     <section aria-labelledby="certifications-title" className="certifications-page" data-scroll-transition="CERTIFICATIONS" id="certifications">
       <div aria-hidden="true" className="certifications-atmosphere">
@@ -170,22 +353,93 @@ export function CertificationsSection() {
           <p className="certifications-eyebrow"><span /> LEARNING &amp; DEVELOPMENT</p>
           <h1 id="certifications-title">Certifications <span>&amp; Achievements</span></h1>
           <p className="certifications-subtitle">
-            Professional certifications, digital badges, and learning achievements from Cisco Networking Academy.
+            Professional certifications, digital badges, and learning achievements from Cisco Networking Academy and the University of Moratuwa.
           </p>
         </header>
 
-        <section aria-labelledby="cisco-academy-heading" className="certifications-provider">
+        <section aria-label="Certification and achievement carousel" className="certifications-provider">
           <div className="certifications-section-heading">
             <div>
-              <p className="certifications-section-label">CREDENTIALS / 01</p>
-              <h2 id="cisco-academy-heading">Cisco Networking Academy</h2>
+              <p className="certifications-section-label">CREDENTIALS / {activeProviderIsCisco ? "01" : "02"}</p>
+              <h2 id="certification-provider-heading">{activeProvider}</h2>
             </div>
-            <span className="certifications-total">07 LEARNING ACHIEVEMENTS</span>
+            <span className="certifications-total">{activeProviderIsCisco ? "07 LEARNING ACHIEVEMENTS" : "01 CERTIFICATE"}</span>
           </div>
-          <div className="achievement-grid">
-            {achievements.map((achievement, index) => (
-              <AchievementCard achievement={achievement} index={index} key={`${achievement.type}-${achievement.title}`} />
-            ))}
+          <div
+            className="projects-shell project-carousel-area certification-carousel-area"
+            onBlurCapture={handleCarouselBlur}
+            onFocusCapture={handleCarouselFocus}
+            onPointerEnter={handleCarouselPointerEnter}
+            onPointerLeave={handleCarouselPointerLeave}
+          >
+            <div className="project-carousel-controls">
+              <span className="project-carousel-hint">EXPLORE CREDENTIALS</span>
+              <div className="project-carousel-arrows">
+                <button aria-label="Previous certification" className="project-carousel-arrow" onClick={() => showAchievement(activeAchievement - 1, -1)} type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+                <button aria-label="Next certification" className="project-carousel-arrow" onClick={() => showAchievement(activeAchievement + 1, 1)} type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div
+              aria-label="Certification carousel. Use left and right arrow keys to change credentials."
+              className={`project-carousel-viewport${isDragging ? " is-dragging" : ""}`}
+              onKeyDown={handleCarouselKeyDown}
+              onPointerCancel={finishPointerGesture}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={finishPointerGesture}
+              role="region"
+              style={viewportHeight === null ? undefined : { height: `${viewportHeight}px` }}
+              tabIndex={0}
+            >
+              <div className={`project-carousel-track${isDragging ? " is-dragging" : ""}`}>
+                {allAchievements.map((achievement, index) => {
+                  const isActive = activeAchievement === index;
+                  const isExiting = transitionFrom?.index === index;
+                  const entryDirection = transitionFrom?.direction === 1 ? "right" : "left";
+                  const exitDirection = transitionFrom?.direction === 1 ? "left" : "right";
+                  const slideClass = `project-carousel-slide${isActive ? " is-active" : isExiting ? ` is-exiting-${exitDirection}` : " is-inactive"}${isActive && transitionFrom ? ` is-entering-from-${entryDirection}` : ""}`;
+                  return (
+                    <div
+                      aria-hidden={!isActive}
+                      aria-label={`${index + 1} of ${allAchievements.length}: ${achievement.title}`}
+                      aria-roledescription="slide"
+                      className={slideClass}
+                      inert={!isActive}
+                      key={`${achievement.type}-${achievement.title}`}
+                      ref={(element) => { slideRefs.current[index] = element; }}
+                      role="group"
+                      style={isDragging ? {
+                        transform: `translate3d(calc(${isActive ? 0 : dragOffset < 0 ? 100 : -100}% + ${dragOffset}px),0,0)`,
+                        opacity: isActive ? Math.max(0.5, 1 - Math.abs(dragOffset) / 600) : Math.min(1, Math.abs(dragOffset) / 90),
+                      } : undefined}
+                    >
+                      <AchievementCard achievement={achievement} index={index} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div aria-label="Choose a certification" className="project-carousel-pagination">
+              <span aria-live="polite" className="project-carousel-counter">{String(activeAchievement + 1).padStart(2, "0")} <i>/</i> {String(allAchievements.length).padStart(2, "0")}</span>
+              <div className="project-carousel-dots">
+                {allAchievements.map((achievement, index) => (
+                  <button
+                    aria-current={activeAchievement === index ? "true" : undefined}
+                    aria-label={`Show ${achievement.title} (${index + 1} of ${allAchievements.length})`}
+                    className={`project-carousel-dot${activeAchievement === index ? " is-active" : ""}`}
+                    key={`${achievement.type}-${achievement.title}-dot`}
+                    onClick={() => showAchievement(index, index > activeAchievement ? 1 : -1)}
+                    type="button"
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </div>

@@ -217,7 +217,6 @@ function LinkedinIcon() {
 
 export function ProjectsSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const hasDraggedRef = useRef(false);
@@ -374,12 +373,7 @@ export function ProjectsSection() {
 
   useEffect(() => {
     if (!transitionFrom) return;
-    if (prefersReducedMotion) {
-      setTransitionFrom(null);
-      return;
-    }
-
-    const timeout = window.setTimeout(() => setTransitionFrom(null), 580);
+    const timeout = window.setTimeout(() => setTransitionFrom(null), prefersReducedMotion ? 0 : 580);
     return () => window.clearTimeout(timeout);
   }, [transitionFrom, prefersReducedMotion]);
 
