@@ -54,7 +54,7 @@ export function LoadingIntro() {
 
   return (
     <div
-      aria-label="Portfolio introduction animation"
+      aria-label="Forklift and shipping container introduction"
       className={`portfolio-intro${exiting ? " is-exiting" : ""}`}
       role="region"
     >
@@ -89,18 +89,6 @@ export function LoadingIntro() {
           </defs>
 
           <ellipse className="intro-ground-shadow" cx="620" cy="477" rx="410" ry="26" filter="url(#intro-shadow)" />
-
-          <g className="intro-cargo">
-            <path d="M630 225 688 193h411l-56 32z" fill="#4c8983" />
-            <path d="M1043 225h56v194h-56z" fill="url(#intro-container-side)" />
-            <path d="M630 225h413v194H630z" fill="url(#intro-container)" stroke="#72d9d0" strokeOpacity=".56" strokeWidth="2" />
-            <path d="M639 232v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180" fill="none" stroke="#8cece2" strokeOpacity=".16" strokeWidth="2" />
-            <path d="M630 237h413M630 408h413" stroke="#96f4eb" strokeOpacity=".3" />
-            <path d="M630 225v194m413-194v194" stroke="#b9eeea" strokeOpacity=".48" strokeWidth="5" />
-            <path d="M648 419v10m377-10v10m-377-204v-10m377 10v-10" stroke="#a2e3df" strokeOpacity=".72" strokeWidth="8" />
-            <path d="M682 258h140" stroke="#b3f5ef" strokeOpacity=".5" strokeWidth="2" />
-            <path d="M682 265h78" stroke="#b3f5ef" strokeOpacity=".24" strokeWidth="2" />
-          </g>
 
           <g className="intro-forklift">
             <g className="intro-mast">
@@ -139,17 +127,20 @@ export function LoadingIntro() {
             <circle cx="379" cy="380" r="4" fill="#91f5e9" />
             <path d="M400 478h140" stroke="#18c6c0" strokeOpacity=".36" strokeWidth="3" />
           </g>
+          <g className="intro-cargo">
+            <path d="M630 225 688 193h411l-56 32z" fill="#4c8983" />
+            <path d="M1043 225h56v194h-56z" fill="url(#intro-container-side)" />
+            <path d="M630 225h413v194H630z" fill="url(#intro-container)" stroke="#72d9d0" strokeOpacity=".56" strokeWidth="2" />
+            <path d="M639 232v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180m15-180v180" fill="none" stroke="#8cece2" strokeOpacity=".16" strokeWidth="2" />
+            <path d="M630 237h413M630 408h413" stroke="#96f4eb" strokeOpacity=".3" />
+            <path d="M630 225v194m413-194v194" stroke="#b9eeea" strokeOpacity=".48" strokeWidth="5" />
+            <path d="M648 419v10m377-10v10m-377-204v-10m377 10v-10" stroke="#a2e3df" strokeOpacity=".72" strokeWidth="8" />
+            <path d="M682 258h140" stroke="#b3f5ef" strokeOpacity=".5" strokeWidth="2" />
+            <path d="M682 265h78" stroke="#b3f5ef" strokeOpacity=".24" strokeWidth="2" />
+          </g>
+
         </svg>
         <div className="intro-light-beam" />
-        <div className="intro-scene-caption">
-          <span className="intro-caption-line" />
-          <span>PREPARING YOUR EXPERIENCE</span>
-        </div>
-      </div>
-      <div className="intro-title-wrap">
-        <p className="intro-overline">BIRON SHALUKA · PORTFOLIO</p>
-        <p className="intro-title">Moving ideas<br /><span>into the world.</span></p>
-        <span className="intro-title-mark" />
       </div>
       <button
         className="intro-skip"
@@ -166,7 +157,6 @@ export function LoadingIntro() {
       >
         Skip intro <span aria-hidden="true">↗</span>
       </button>
-      <span aria-live="polite" className="sr-only">Portfolio introduction. Use Skip intro to continue.</span>
     </div>
   );
 }
