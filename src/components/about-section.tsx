@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 const interests = [
   "Computer Networking",
@@ -49,18 +50,18 @@ export function AboutSection() {
       </div>
 
       <div className="about-inner">
-        <aside aria-label="Portrait placeholder" className="about-portrait-column">
+        <aside aria-label="Profile photo" className="about-portrait-column">
           <div className="about-portrait-glow" />
           <div className="about-portrait-frame">
             <div className="about-portrait-topline"><span>PROFILE / BIRON SHALUKA</span><span>01</span></div>
-            {/* Replace this placeholder with a next/image portrait when the photo is ready. */}
-            <div className="about-portrait-placeholder">
-              <div aria-hidden="true" className="about-portrait-grid" />
-              <div aria-hidden="true" className="about-portrait-silhouette">
-                <span className="about-silhouette-head" />
-                <span className="about-silhouette-body" />
-              </div>
-              <span className="about-portrait-caption">PORTRAIT<br />PLACEHOLDER</span>
+            <div className="about-portrait-media">
+              <Image
+                alt="Biron Shaluka - Profile Photo"
+                className="about-portrait-image"
+                fill
+                sizes="(max-width: 680px) min(88vw, 420px), (max-width: 1100px) 40vw, 390px"
+                src="/about-profile.png"
+              />
               <span aria-hidden="true" className="about-portrait-corner about-portrait-corner-top" />
               <span aria-hidden="true" className="about-portrait-corner about-portrait-corner-bottom" />
             </div>
