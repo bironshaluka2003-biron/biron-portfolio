@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import { HomeLanding } from "@/components/home-landing";
 import { AboutSection } from "@/components/about-section";
+import { ExperienceSection } from "@/components/experience-section";
 import { ProjectsSection } from "@/components/projects-section";
 import { CertificationsSection } from "@/components/certifications-section";
 import { TechnologiesSection } from "@/components/technologies-section";
@@ -11,6 +12,7 @@ export default function Home() {
       <main>
         <HomeLanding />
         <AboutSection />
+        <ExperienceSection />
         <ProjectsSection />
         <CertificationsSection />
         <TechnologiesSection />
