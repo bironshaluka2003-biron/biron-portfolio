@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <Script id="portfolio-intro-session-guard" strategy="beforeInteractive">
-          {`(() => { try { const key = "biron-portfolio-intro-seen"; const root = document.documentElement; if (sessionStorage.getItem(key) === "true" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { root.dataset.portfolioIntroSeen = "true"; } else { sessionStorage.setItem(key, "true"); } } catch (_) {} })();`}
+          {`(() => { try { const key = "biron-portfolio-network-intro-seen"; const root = document.documentElement; if (sessionStorage.getItem(key) === "true" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { root.dataset.portfolioIntroSeen = "true"; } else { sessionStorage.setItem(key, "true"); } } catch (_) {} })();`}
         </Script>
       </head>
       <body className="min-h-screen flex flex-col">

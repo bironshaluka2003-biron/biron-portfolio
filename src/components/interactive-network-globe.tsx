@@ -482,6 +482,7 @@ export default function InteractiveNetworkGlobe() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reduceMotion = reducedMotion.matches;
     let visible = false;
+    let stageInViewport = false;
     let frameId = 0;
     let previousTime = 0;
     let elapsed = 0;
@@ -669,8 +670,11 @@ export default function InteractiveNetworkGlobe() {
       if (visible && frameId === 0) frameId = window.requestAnimationFrame(renderFrame);
     };
 
-    const intersectionObserver = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+    const syncRenderVisibility = () => {
+      const shouldRender =
+        stageInViewport && document.documentElement.dataset.portfolioIntroActive !== "true";
+      if (visible === shouldRender) return;
+      visible = shouldRender;
       if (visible) {
         previousTime = 0;
         requestRenderRef.current?.();
@@ -678,8 +682,19 @@ export default function InteractiveNetworkGlobe() {
         window.cancelAnimationFrame(frameId);
         frameId = 0;
       }
+    };
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      stageInViewport = entry.isIntersecting;
+      syncRenderVisibility();
     }, { threshold: 0.01 });
     intersectionObserver.observe(stage);
+
+    const introObserver = new MutationObserver(syncRenderVisibility);
+    introObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-portfolio-intro-active"],
+    });
 
     const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     resizeObserver?.observe(stage);
@@ -717,6 +732,7 @@ export default function InteractiveNetworkGlobe() {
       visible = false;
       if (frameId !== 0) window.cancelAnimationFrame(frameId);
       intersectionObserver.disconnect();
+      introObserver.disconnect();
       resizeObserver?.disconnect();
       window.removeEventListener("resize", resize);
       stage.removeEventListener("wheel", handleWheel);
