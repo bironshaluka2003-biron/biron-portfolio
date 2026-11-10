@@ -95,7 +95,7 @@ export function HomeLanding() {
         <section aria-label="Social profiles and CV" className="social-actions">
           <SocialAction external href="https://github.com/bironshaluka2003-biron" kind="github" label="GitHub" />
           <SocialAction external href="https://www.linkedin.com/in/bironshaluka/" kind="linkedin" label="LinkedIn" />
-          <SocialAction href="/Biron-Shaluka-CV.pdf" kind="download" label="Download CV" onClick={() => setIsCvModalOpen(true)} />
+          <SocialAction href="/Biron-Shaluka-CV.pdf" kind="download" label="View My CV" onClick={() => setIsCvModalOpen(true)} />
         </section>
 
         <div className="home-footnote"><span /> NETWORKS · SYSTEMS · INFRASTRUCTURE</div>
