@@ -8,6 +8,10 @@ const GLOBE_RADIUS = 1.45;
 const SATELLITE_ORBIT_X = 1.92;
 const SATELLITE_ORBIT_Y = 1.78;
 const INTRO_EXIT_DURATION = 950;
+const GLOBE_CAMERA_FOV = 34;
+const HOME_CAMERA_DISTANCE = 6.4;
+// Includes the satellite's full orbit and a small margin for its solar panels.
+const INTRO_VISUAL_RADIUS = 2.82;
 
 const INTRO_HUBS = [
   [6.9271, 79.8612], [1.3521, 103.8198], [35.6762, 139.6503], [19.076, 72.8777],
@@ -19,6 +23,27 @@ const INTRO_ROUTES = [[0,1],[0,3],[0,4],[1,2],[1,9],[1,8],[2,6],[3,6],[4,5],[5,6
 function smoothStep(value: number) {
   const t = THREE.MathUtils.clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
+}
+
+function getIntroFrame(width: number, height: number, skipTop: number | null) {
+  const safeWidth = Math.max(1, width);
+  const safeHeight = Math.max(1, height);
+  const skipReserve = skipTop === null
+    ? Math.min(104, Math.max(76, safeHeight * 0.16))
+    : Math.max(0, safeHeight - skipTop) + 12;
+  const topInset = Math.min(32, safeHeight * 0.04);
+  const availableHeight = Math.max(100, safeHeight - skipReserve - topInset);
+  const availableDiameter = Math.max(80, Math.min(safeWidth * 0.86, availableHeight * 0.86));
+  const halfFovTangent = Math.tan(THREE.MathUtils.degToRad(GLOBE_CAMERA_FOV / 2));
+  const cameraDistance = Math.max(
+    HOME_CAMERA_DISTANCE,
+    (INTRO_VISUAL_RADIUS * safeHeight) / (halfFovTangent * availableDiameter),
+  );
+  const usableCenterY = topInset + (safeHeight - skipReserve - topInset) / 2;
+  const upwardOffsetPixels = safeHeight / 2 - usableCenterY;
+  const verticalOffset = (upwardOffsetPixels * 2 * cameraDistance * halfFovTangent) / safeHeight;
+
+  return { cameraDistance, verticalOffset };
 }
 
 function introPoint(latitude: number, longitude: number, radius: number) {
@@ -471,7 +496,13 @@ export default function InteractiveNetworkGlobe() {
         setMode("intro");
         stage.style.transition = "none";
         stage.style.opacity = "1";
-        setBounds(new DOMRect(0, 0, window.innerWidth, window.innerHeight));
+        const viewport = window.visualViewport;
+        setBounds(new DOMRect(
+          viewport?.offsetLeft ?? 0,
+          viewport?.offsetTop ?? 0,
+          viewport?.width ?? window.innerWidth,
+          viewport?.height ?? window.innerHeight,
+        ));
         return;
       }
 
@@ -504,6 +535,7 @@ export default function InteractiveNetworkGlobe() {
     window.addEventListener("resize", schedulePlace);
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.visualViewport?.addEventListener("resize", schedulePlace);
+    window.visualViewport?.addEventListener("scroll", schedulePlace);
     schedulePlace();
 
     return () => {
@@ -512,6 +544,7 @@ export default function InteractiveNetworkGlobe() {
       window.removeEventListener("resize", schedulePlace);
       window.removeEventListener("scroll", handleScroll);
       window.visualViewport?.removeEventListener("resize", schedulePlace);
+      window.visualViewport?.removeEventListener("scroll", schedulePlace);
       if (placementFrame) window.cancelAnimationFrame(placementFrame);
       if (transitionFrame) window.cancelAnimationFrame(transitionFrame);
       if (followFrame) window.cancelAnimationFrame(followFrame);
@@ -582,8 +615,8 @@ export default function InteractiveNetworkGlobe() {
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
-    camera.position.set(0, 0, 6.4);
+    const camera = new THREE.PerspectiveCamera(GLOBE_CAMERA_FOV, 1, 0.1, 60);
+    camera.position.set(0, 0, HOME_CAMERA_DISTANCE);
 
     scene.add(new THREE.AmbientLight(0xa3b8b5, 1.05));
     const keyLight = new THREE.PointLight(0x18c6c0, 18, 12);
@@ -598,6 +631,9 @@ export default function InteractiveNetworkGlobe() {
 
     const sceneRoot = new THREE.Group();
     scene.add(sceneRoot);
+    let introCameraDistance = HOME_CAMERA_DISTANCE;
+    let introVerticalOffset = 0;
+    let hasIntroFrame = false;
     const globeGroup = new THREE.Group();
     globeGroup.rotation.y = Math.PI;
     sceneRoot.add(globeGroup);
@@ -832,13 +868,37 @@ export default function InteractiveNetworkGlobe() {
     dismissTooltipRef.current = hideTooltip;
 
     const resize = () => {
-      const { width, height } = stage.getBoundingClientRect();
+      const stageBounds = stage.getBoundingClientRect();
+      const { width, height } = stageBounds;
       if (width < 1 || height < 1) return;
       const pixelRatio = Math.min(window.devicePixelRatio || 1, width < 600 ? 1.15 : 1.5);
       if (Math.abs(renderer.getPixelRatio() - pixelRatio) > 0.01) renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+
+      if (
+        document.documentElement.dataset.portfolioIntroActive === "true" &&
+        document.documentElement.dataset.portfolioIntroPhase !== "exit"
+      ) {
+        const skipButton = document.querySelector<HTMLElement>(".intro-skip");
+        const skipTop = skipButton
+          ? skipButton.getBoundingClientRect().top - stageBounds.top
+          : null;
+        const frame = width <= 1024
+          ? getIntroFrame(width, height, skipTop)
+          : { cameraDistance: HOME_CAMERA_DISTANCE, verticalOffset: 0 };
+        introCameraDistance = frame.cameraDistance;
+        introVerticalOffset = frame.verticalOffset;
+
+        // Set the initial mobile frame before the first visible render. Later
+        // resize and orientation changes are eased in the shared render loop.
+        if (!hasIntroFrame) {
+          camera.position.z = introCameraDistance;
+          sceneRoot.position.y = introVerticalOffset;
+          hasIntroFrame = true;
+        }
+      }
       requestRenderRef.current?.();
     };
 
@@ -856,6 +916,23 @@ export default function InteractiveNetworkGlobe() {
       if (introExiting && introExitStartedAt === null) introExitStartedAt = time;
       const exitFade = introExitStartedAt === null ? 0 : smoothStep((time - introExitStartedAt) / INTRO_EXIT_DURATION);
       introNetwork.update(elapsed, introActive ? (introExiting ? 1 - exitFade : 1) : 0);
+
+      if (introExiting) {
+        camera.position.z = THREE.MathUtils.lerp(introCameraDistance, HOME_CAMERA_DISTANCE, exitFade);
+        sceneRoot.position.y = introVerticalOffset * (1 - exitFade);
+      } else if (introActive) {
+        if (reduceMotion) {
+          camera.position.z = introCameraDistance;
+          sceneRoot.position.y = introVerticalOffset;
+        } else {
+          const frameEase = 1 - Math.exp(-Math.max(delta, 1 / 120) * 7);
+          camera.position.z += (introCameraDistance - camera.position.z) * frameEase;
+          sceneRoot.position.y += (introVerticalOffset - sceneRoot.position.y) * frameEase;
+        }
+      } else {
+        camera.position.z = HOME_CAMERA_DISTANCE;
+        sceneRoot.position.y = 0;
+      }
 
       if (!reduceMotion) {
         satellite.position.set(
