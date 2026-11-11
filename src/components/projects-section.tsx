@@ -458,7 +458,7 @@ export function ProjectsSection() {
 
   return (
     <section
-      aria-label="Projects"
+      aria-labelledby="projects-title"
       className={`projects-section${isVisible ? " is-visible" : ""}`}
       data-scroll-transition="PROJECTS"
       id="projects"
@@ -471,8 +471,11 @@ export function ProjectsSection() {
         onPointerEnter={handleCarouselPointerEnter}
         onPointerLeave={handleCarouselPointerLeave}
       >
-        <div className="project-carousel-controls">
-          <span className="project-carousel-hint">EXPLORE PROJECTS</span>
+        <header className="projects-heading">
+          <div>
+            <span className="project-carousel-hint">EXPLORE PROJECTS</span>
+            <h2 className="projects-section-title" id="projects-title">Projects</h2>
+          </div>
           <div className="project-carousel-arrows">
             <button aria-label="Previous project" className="project-carousel-arrow" onClick={() => showProject(activeProject - 1, -1)} type="button">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
@@ -481,7 +484,7 @@ export function ProjectsSection() {
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
             </button>
           </div>
-        </div>
+        </header>
 
         <div
           aria-label="Project carousel. Use left and right arrow keys to change projects."
