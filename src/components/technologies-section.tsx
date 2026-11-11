@@ -16,12 +16,14 @@ import {
   siPython,
   siSpringboot,
   siTailwindcss,
+  siTerraform,
   siVercel,
   siVscodium,
+  siGithubactions,
 } from "simple-icons";
 
 type BrandIcon = { path: string; hex: string };
-type TechnicalMark = "java" | "network" | "subnet" | "route" | "switch" | "packet";
+type TechnicalMark = "java" | "network" | "subnet" | "route" | "switch" | "packet" | "storage" | "terminal" | "assistant";
 type Technology = { name: string; icon?: BrandIcon; mark?: TechnicalMark };
 type TechnologyCategory = { id: string; number: string; title: string; items: Technology[] };
 
@@ -56,6 +58,7 @@ const categories: TechnologyCategory[] = [
       { name: "TCP/IP", mark: "packet" },
       { name: "UDP", mark: "packet" },
       { name: "Linux", icon: siLinux },
+      { name: "AWS S3", mark: "storage" },
     ],
   },
   {
@@ -70,6 +73,10 @@ const categories: TechnologyCategory[] = [
       { name: "Visual Studio Code", icon: siVscodium },
       { name: "IntelliJ IDEA", icon: siIntellijidea },
       { name: "Vercel", icon: siVercel },
+      { name: "Terraform", icon: siTerraform },
+      { name: "GitHub Actions", icon: siGithubactions },
+      { name: "AWS CLI", mark: "terminal" },
+      { name: "Codex", mark: "assistant" },
     ],
   },
   {
@@ -94,6 +101,9 @@ function FallbackMark({ kind }: { kind: TechnicalMark }) {
       {kind === "route" && <><circle cx="5" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><path d="M7 18h4a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3" /></>}
       {kind === "switch" && <><path d="M4 8h15m-4-4 4 4-4 4M20 16H5m4-4-4 4 4 4" /></>}
       {kind === "packet" && <><rect x="3.5" y="5" width="17" height="14" rx="2" /><path d="M7 9h10M7 12h6m-6 3h8" /></>}
+      {kind === "storage" && <><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z" /><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21" /></>}
+      {kind === "terminal" && <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m7 9 3 3-3 3m6 0h4" /></>}
+      {kind === "assistant" && <><path d="M12 3.5v3m0 11v3m8.5-8.5h-3m-11 0h-3m14.01-6.01-2.12 2.12m-7.78 7.78-2.12 2.12m12.02 0-2.12-2.12m-7.78-7.78L6.49 5.99" /><circle cx="12" cy="12" r="4" /></>}
     </svg>
   );
 }
