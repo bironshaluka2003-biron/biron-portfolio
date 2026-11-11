@@ -51,6 +51,15 @@ const remoteOpsTechnologies = [
   "Makefile",
 ];
 
+const awsWebsiteTechnologies = [
+  "AWS S3",
+  "Terraform",
+  "GitHub Actions",
+  "CI/CD",
+  "Git",
+  "GitHub",
+];
+
 const remoteOpsContributions = [
   {
     title: "TCP Client-Server Architecture",
@@ -207,6 +216,58 @@ function RemoteOpsIllustration() {
   );
 }
 
+function AwsWebsiteIllustration() {
+  return (
+    <div className="project-visual" aria-label="Illustration of a Terraform and GitHub Actions pipeline deploying a static site to Amazon S3">
+      <svg viewBox="0 0 520 340" role="img" aria-labelledby="aws-website-visual-title">
+        <title id="aws-website-visual-title">GitHub Actions and Terraform deployment to Amazon S3</title>
+        <defs>
+          <radialGradient id="aws-pipeline-glow">
+            <stop offset="0" stopColor="#18C6C0" stopOpacity=".2" />
+            <stop offset="1" stopColor="#18C6C0" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="aws-pipeline-line" x1="0" y1="0" x2="1" y2="0">
+            <stop stopColor="#20D8CE" stopOpacity=".16" />
+            <stop offset=".5" stopColor="#18C6C0" stopOpacity=".8" />
+            <stop offset="1" stopColor="#91F5E9" stopOpacity=".25" />
+          </linearGradient>
+          <pattern id="aws-pipeline-grid" width="26" height="26" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="1" fill="#91F5E9" opacity=".18" />
+          </pattern>
+        </defs>
+        <rect width="520" height="340" rx="18" fill="url(#aws-pipeline-grid)" />
+        <circle cx="260" cy="170" r="164" fill="url(#aws-pipeline-glow)" />
+        <g fill="none" stroke="url(#aws-pipeline-line)" strokeWidth="1.7">
+          <path d="M130 170h260" />
+          <path d="M130 170 92 91M390 170l38-79" opacity=".7" />
+          <path d="M130 170h260" strokeDasharray="4 8" opacity=".7" />
+        </g>
+        <g fill="#102B2D" stroke="#20D8CE" strokeWidth="1.5">
+          <rect x="66" y="127" width="128" height="86" rx="13" />
+          <rect x="218" y="127" width="128" height="86" rx="13" />
+          <rect x="370" y="127" width="104" height="86" rx="13" />
+          <circle cx="92" cy="91" r="11" /><circle cx="428" cy="91" r="11" />
+        </g>
+        <g fill="none" stroke="#91F5E9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M112 154h35m-35 12h35m-35 12h24" />
+          <path d="m263 161 10-10 10 10v16h-20v-16Zm5 16v-9h10v9" />
+          <path d="M403 155h38v30h-38zM403 163h38m-28-8v8m18-8v8" />
+          <path d="M244 221h22m10 0h22m10 0h22" opacity=".65" />
+          <path d="m92 87 5 4-5 4m-4-8-5 4 5 4M428 87l5 4-5 4m-4-8-5 4 5 4" />
+        </g>
+        <g fill="#A3B8B5" fontFamily="sans-serif" fontSize="9" letterSpacing="1.1" textAnchor="middle">
+          <text x="130" y="239">GIT PUSH</text>
+          <text x="282" y="239">TERRAFORM + CI/CD</text>
+          <text x="422" y="239">AMAZON S3</text>
+        </g>
+        <g fill="#91F5E9">
+          <circle cx="130" cy="170" r="3" /><circle cx="282" cy="170" r="3" /><circle cx="422" cy="170" r="3" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 function GithubIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.68-3.76-1.31-3.76-1.31-.5-1.28-1.23-1.62-1.23-1.62-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.14 1.7 1.14.99 1.7 2.6 1.21 3.23.92.1-.72.39-1.21.7-1.49-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.22 1.15-3-.12-.29-.5-1.43.11-2.98 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.12-1.44 3.05-1.15 3.05-1.15.61 1.55.23 2.69.12 2.98.72.78 1.14 1.78 1.14 3 0 4.29-2.61 5.24-5.1 5.52.4.35.75 1.03.75 2.08v3.06c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z" /></svg>;
 }
@@ -234,7 +295,7 @@ export function ProjectsSection() {
   const [transitionFrom, setTransitionFrom] = useState<{ index: number; direction: -1 | 1 } | null>(null);
 
   const showProject = (index: number, direction: -1 | 1) => {
-    const nextIndex = (index + 2) % 2;
+    const nextIndex = (index + 3) % 3;
     if (nextIndex === activeProject) return;
     setTransitionFrom({ index: activeProject, direction });
     setActiveProject(nextIndex);
@@ -388,7 +449,7 @@ export function ProjectsSection() {
 
     const autoplayTimeout = window.setTimeout(() => {
       setTransitionFrom({ index: activeProject, direction: 1 });
-      setActiveProject((currentProject) => (currentProject + 1) % 2);
+      setActiveProject((currentProject) => (currentProject + 1) % 3);
       setDragOffset(0);
       setResumeAfter(0);
     }, 5000);
@@ -581,13 +642,62 @@ export function ProjectsSection() {
           </div>
           </article>
           </div>
+          <div
+            aria-hidden={activeProject !== 2}
+            aria-label="3 of 3: AWS Static Website Deployment Using Terraform and GitHub Actions"
+            aria-roledescription="slide"
+            className={`project-carousel-slide${activeProject === 2 ? " is-active" : transitionFrom?.index === 2 ? ` is-exiting-${transitionFrom.direction === 1 ? "left" : "right"}` : " is-inactive"}${activeProject === 2 && transitionFrom ? ` is-entering-from-${transitionFrom.direction === 1 ? "right" : "left"}` : ""}`}
+            inert={activeProject !== 2}
+            ref={(element) => { slideRefs.current[2] = element; }}
+            role="group"
+            style={isDragging ? {
+              transform: `translate3d(calc(${activeProject === 2 ? 0 : dragOffset < 0 ? 100 : -100}% + ${dragOffset}px),0,0)`,
+              opacity: activeProject === 2 ? Math.max(0.5, 1 - Math.abs(dragOffset) / 600) : Math.min(1, Math.abs(dragOffset) / 90),
+            } : undefined}
+          >
+          <article aria-labelledby="aws-website-title" className="project-card">
+            <div className="project-overview">
+              <div className="project-copy">
+                <div className="project-meta">
+                  <span className="project-type">DevOps Project</span>
+                  <span className="project-status"><i /> Completed</span>
+                </div>
+                <h3 id="aws-website-title">AWS Static Website Deployment <span>Using Terraform &amp; GitHub Actions</span></h3>
+                <p className="project-description">
+                  Designed and deployed a static website on Amazon S3 using Terraform for Infrastructure as Code. Implemented an automated CI/CD pipeline with GitHub Actions to deploy website updates to the S3 bucket whenever changes are pushed to the main branch. Used Git and GitHub for version control.
+                </p>
+              </div>
+              <AwsWebsiteIllustration />
+            </div>
+
+            <div className="project-divider" />
+
+            <div className="project-bottom">
+              <div className="project-technologies">
+                <p className="project-label">TECHNOLOGIES &amp; TOOLS</p>
+                <ul className="technology-list">
+                  {awsWebsiteTechnologies.map((technology) => <li key={technology}>{technology}</li>)}
+                </ul>
+              </div>
+              <div className="project-links" aria-label="AWS static website project links">
+                <a href="http://shaluka-devops-website-2026.s3-website-ap-southeast-2.amazonaws.com" target="_blank" rel="noopener noreferrer" aria-label="Open Live Demo (opens in a new tab)">
+                  <svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-9 9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" /><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" /></svg>
+                  <span>Live Demo</span>
+                </a>
+                <a href="https://github.com/bironshaluka2003-biron/devops-aws-terraform-project" target="_blank" rel="noopener noreferrer" aria-label="View GitHub Repository (opens in a new tab)">
+                  <GithubIcon /> <span>GitHub Repository</span>
+                </a>
+              </div>
+            </div>
+          </article>
+          </div>
           </div>
         </div>
 
         <div aria-label="Choose a project" className="project-carousel-pagination">
-          <span aria-live="polite" className="project-carousel-counter">0{activeProject + 1} <i>/</i> 02</span>
+          <span aria-live="polite" className="project-carousel-counter">{String(activeProject + 1).padStart(2, "0")} <i>/</i> 03</span>
           <div className="project-carousel-dots">
-            {[0, 1].map((index) => (
+            {[0, 1, 2].map((index) => (
               <button
                 aria-current={activeProject === index ? "true" : undefined}
                 aria-label={`Show project ${index + 1}`}
